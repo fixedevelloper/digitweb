@@ -44,8 +44,10 @@ export default function WalletsPage() {
 
             {/* Grille principale de monitoring & Tableau des soldes */}
             <main>
-                {/* On passe une fonction de callback pour intercepter le clic sur une ligne du tableau */}
-                <WalletMonitor />
+                {/* On passe le callback pour intercepter le clic sur un portefeuille */}
+                <WalletMonitor
+                    onAdjustWallet={(id, phone) => setSelectedWallet({ id, phone })}
+                />
             </main>
 
             {/* Injection conditionnelle de la modale de crédit/débit */}

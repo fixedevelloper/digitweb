@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { apiClient } from '@/lib/api-client'; // Import de ton instance Axios globale
+import { apiClient } from '@/lib/api-client';
 
 export interface Wallet {
     id: number;

@@ -2,7 +2,12 @@
 
 import { useWallets } from '../hooks/use-wallets';
 
-export function WalletMonitor() {
+// Déclaration de l'interface pour recevoir le callback de la page parente
+interface WalletMonitorProps {
+    onAdjustWallet?: (id: number, phone: string) => void;
+}
+
+export function WalletMonitor({ onAdjustWallet }: WalletMonitorProps) {
     const { data: wallets, totalSystemLiquidity, isLoading, isError } = useWallets();
 
     if (isLoading) return <div className="text-center py-12 text-sm text-slate-500 animate-pulse">Calcul de la masse monétaire globale...</div>;
@@ -46,11 +51,21 @@ export function WalletMonitor() {
                             <th className="px-6 py-3.5">Détenteur & Mobile</th>
                             <th className="px-6 py-3.5">Type de Compte</th>
                             <th className="px-6 py-3.5 text-right">Solde Disponible</th>
+                            {onAdjustWallet && <th className="px-6 py-3.5 text-right">Actions</th>}
                         </tr>
                         </thead>
                         <tbody className="text-xs divide-y divide-slate-100 text-slate-700 font-medium">
                         {wallets?.map((wallet) => (
-                            <tr key={wallet.id} className="hover:bg-slate-50/40 transition-colors">
+                            <tr
+                                key={wallet.id}
+                                className={`transition-colors ${onAdjustWallet ? 'hover:bg-slate-50/80 cursor-pointer' : 'hover:bg-slate-50/40'}`}
+                                // Clic sur la ligne entière pour ouvrir l'ajustement
+                                onClick={() => {
+                                    if (onAdjustWallet) {
+                                        onAdjustWallet(wallet.id, wallet.user?.phone || 'Compte sans numéro');
+                                    }
+                                }}
+                            >
                                 {/* ID Wallet */}
                                 <td className="px-6 py-4 font-mono font-bold text-slate-400">
                                     #W-{wallet.id.toString().padStart(5, '0')}
@@ -64,30 +79,42 @@ export function WalletMonitor() {
 
                                 {/* Rôle Système */}
                                 <td className="px-6 py-4">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                        wallet.user?.role === 'superadmin' || wallet.user?.role === 'admin'
-                            ? 'bg-blue-50 text-blue-700 border border-blue-200/50'
-                            : wallet.user?.role === 'merchant'
-                            ? 'bg-purple-50 text-purple-700 border border-purple-200/50'
-                            : 'bg-slate-50 text-slate-600 border border-slate-200/50'
-                    }`}>
-                      {wallet.user?.role || 'customer'}
-                    </span>
+                                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                                        wallet.user?.role === 'superadmin' || wallet.user?.role === 'admin'
+                                            ? 'bg-blue-50 text-blue-700 border border-blue-200/50'
+                                            : wallet.user?.role === 'merchant'
+                                            ? 'bg-purple-50 text-purple-700 border border-purple-200/50'
+                                            : 'bg-slate-50 text-slate-600 border border-slate-200/50'
+                                    }`}>
+                                        {wallet.user?.role || 'customer'}
+                                    </span>
                                 </td>
 
                                 {/* Solde Financier */}
                                 <td className="px-6 py-4 text-right">
-                    <span className="font-mono font-black text-slate-900 text-sm">
-                      {Number(wallet.balance).toLocaleString()}
-                    </span>
+                                    <span className="font-mono font-black text-slate-900 text-sm">
+                                      {Number(wallet.balance).toLocaleString()}
+                                    </span>
                                     <span className="text-[10px] font-bold text-slate-400 ml-1.5 font-mono">{wallet.currency}</span>
                                 </td>
+
+                                {/* Bouton Ajuster de manière explicite */}
+                                {onAdjustWallet && (
+                                    <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
+                                        <button
+                                            onClick={() => onAdjustWallet(wallet.id, wallet.user?.phone || 'Compte sans numéro')}
+                                            className="inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+                                        >
+                                            🔧 Ajuster
+                                        </button>
+                                    </td>
+                                )}
                             </tr>
                         ))}
 
                         {wallets?.length === 0 && (
                             <tr>
-                                <td colSpan={4} className="px-6 py-12 text-center text-sm text-slate-400">
+                                <td colSpan={onAdjustWallet ? 5 : 4} className="px-6 py-12 text-center text-sm text-slate-400">
                                     Aucun portefeuille n'est provisionné dans le système.
                                 </td>
                             </tr>
