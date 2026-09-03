@@ -2,10 +2,12 @@
 
 import { useState, useRef } from 'react';
 import { useCountries, Country } from '@/features/countries/hooks/use-countries';
+import { useOperators } from '@/features/operators/hooks/use-operators';
 import { Button } from '@/components/ui/button';
 
 export default function CountriesPage() {
     const { data: countries, isLoading, error, updateCountry, isUpdating } = useCountries();
+    const { data: operators } = useOperators();
 
     // États pour la création et l'édition
     const [isCreating, setIsCreating] = useState(false);
@@ -24,6 +26,7 @@ export default function CountriesPage() {
         currency: string;
         flag: File | null;
         flagPreview: string | null;
+        forced_operator_id: number | null;
     }>({
         name: '',
         iso: '',
@@ -32,6 +35,7 @@ export default function CountriesPage() {
         currency: 'XAF',
         flag: null,
         flagPreview: null,
+        forced_operator_id: null,
     });
 
     if (isLoading) {
@@ -85,13 +89,14 @@ export default function CountriesPage() {
             flag: null,
             // Si ton API Laravel renvoie l'URL du drapeau stocké, mets-la ici en fallback
             flagPreview: (country as any).flag_url || null,
+            forced_operator_id: country.forced_operator_id ?? null,
         });
     };
 
     // Déclencheur Mode Création
     const startCreating = () => {
         setEditingCountryId(null);
-        setFormData({ name: '', iso: '', iso3: '', phonecode: 237, currency: 'XAF', flag: null, flagPreview: null });
+        setFormData({ name: '', iso: '', iso3: '', phonecode: 237, currency: 'XAF', flag: null, flagPreview: null, forced_operator_id: null });
         setIsCreating(true);
     };
 
@@ -113,6 +118,8 @@ export default function CountriesPage() {
         if (id) {
             // TRÈS IMPORTANT : On simule un PUT sous le capot d'un POST
             dataPayload.append('_method', 'PUT');
+            // Routage manuel : chaîne vide = pas de bascule forcée (comportement normal)
+            dataPayload.append('forced_operator_id', formData.forced_operator_id ? String(formData.forced_operator_id) : '');
 
             updateCountry({
                 id,
@@ -391,6 +398,34 @@ export default function CountriesPage() {
                                                 </div>
                                             </div>
 
+                                            {/* Bascule manuelle de routage : force un opérateur précis pour ce pays,
+                                                indépendamment de celui choisi par l'expéditeur (ex: panne réseau) */}
+                                            <div className="space-y-1 bg-amber-50 border border-amber-200/70 rounded-xl p-2.5">
+                                                <label className="font-bold text-amber-700 uppercase tracking-wider text-[10px]">
+                                                    ⚡ Opérateur forcé (routage manuel)
+                                                </label>
+                                                <select
+                                                    value={formData.forced_operator_id ?? ''}
+                                                    onChange={e => setFormData({
+                                                        ...formData,
+                                                        forced_operator_id: e.target.value ? Number(e.target.value) : null,
+                                                    })}
+                                                    className="w-full px-3 py-1.5 border border-amber-300 bg-white rounded-lg focus:outline-none focus:border-amber-500 text-xs font-semibold"
+                                                >
+                                                    <option value="">Aucun — routage normal (choix de l&apos;expéditeur)</option>
+                                                    {operators
+                                                        ?.filter(op => op.country_id === country.id)
+                                                        .map(op => (
+                                                            <option key={op.id} value={op.id}>
+                                                                {op.name} ({op.code}){!op.status ? ' — coupé' : ''}
+                                                            </option>
+                                                        ))}
+                                                </select>
+                                                <p className="text-[9px] text-amber-700/80 font-medium">
+                                                    Toutes les transactions de ce pays seront redirigées vers cet opérateur, quel que soit celui choisi par l&apos;utilisateur.
+                                                </p>
+                                            </div>
+
                                             <div className="flex justify-end gap-2 pt-1">
                                                 <Button type="button" variant="outline" onClick={() => setEditingCountryId(null)} className="h-7 text-[10px] font-bold px-2.5">
                                                     Annuler
@@ -401,15 +436,24 @@ export default function CountriesPage() {
                                             </div>
                                         </form>
                                     ) : (
-                                        <div className="grid grid-cols-2 gap-4 bg-slate-50/80 p-3 border border-slate-100 rounded-xl font-medium text-slate-600">
-                                            <div>
-                                                <span className="block text-[9px] text-slate-400 font-bold uppercase tracking-wider">Préfixe Tel</span>
-                                                <span className="font-mono text-slate-800 font-bold text-sm">+{country.phonecode}</span>
+                                        <div className="space-y-3">
+                                            <div className="grid grid-cols-2 gap-4 bg-slate-50/80 p-3 border border-slate-100 rounded-xl font-medium text-slate-600">
+                                                <div>
+                                                    <span className="block text-[9px] text-slate-400 font-bold uppercase tracking-wider">Préfixe Tel</span>
+                                                    <span className="font-mono text-slate-800 font-bold text-sm">+{country.phonecode}</span>
+                                                </div>
+                                                <div>
+                                                    <span className="block text-[9px] text-slate-400 font-bold uppercase tracking-wider">Devise Pivot</span>
+                                                    <span className="font-mono text-blue-600 font-bold text-sm">{country.currency}</span>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <span className="block text-[9px] text-slate-400 font-bold uppercase tracking-wider">Devise Pivot</span>
-                                                <span className="font-mono text-blue-600 font-bold text-sm">{country.currency}</span>
-                                            </div>
+
+                                            {country.forced_operator && (
+                                                <div className="flex items-center justify-between text-[11px] bg-amber-50 border border-amber-200/70 text-amber-800 px-3 py-2 rounded-xl font-bold">
+                                                    <span>⚡ Routage forcé :</span>
+                                                    <span>{country.forced_operator.name} ({country.forced_operator.code})</span>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                 </div>

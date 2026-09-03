@@ -36,10 +36,10 @@ export default function DashboardOverview() {
             {/* En-tête de la page */}
             <div>
                 <h1 className="text-3xl font-black tracking-tight text-slate-900 uppercase">
-                    Vue d'ensemble
+                    Vue d&apos;ensemble
                 </h1>
                 <p className="text-sm text-slate-500 mt-0.5">
-                    Suivi en temps réel de vos flux et transferts d'argent sur la passerelle.
+                    Suivi en temps réel de vos flux et transferts d&apos;argent sur la passerelle.
                 </p>
             </div>
 
@@ -81,7 +81,7 @@ export default function DashboardOverview() {
                         {stats?.successRate ? stats.successRate.toFixed(1) : '0.0'}%
                     </p>
                     <p className="text-[10px] text-slate-400 mt-3">
-                        Ratio d'exécution des passerelles de paiement
+                        Ratio d&apos;exécution des passerelles de paiement
                     </p>
                 </div>
             </div>

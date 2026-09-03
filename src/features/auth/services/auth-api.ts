@@ -11,7 +11,7 @@ export const authApi = {
    */
   login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
     const response = await axios.post<AuthResponse>(
-        `${BASE_URL}/auth/login`,
+        `${BASE_URL}/admin/auth/login`,
         credentials,
         {
           headers: {

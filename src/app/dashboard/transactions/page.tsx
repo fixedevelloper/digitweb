@@ -1,5 +1,4 @@
 import { TransactionTable } from '@/features/transactions/components/transaction-table';
-import { TransferForm } from '@/features/transactions/components/transfer-form';
 
 export default function TransactionsPage() {
   return (

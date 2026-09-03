@@ -36,10 +36,10 @@ export default function Home() {
               Console Core Engine & Fintech API
             </span>
               <h1 className="mx-auto max-w-4xl text-4xl font-bold tracking-tight text-slate-900 sm:text-6xl">
-                L'infrastructure moderne pour vos <span className="text-blue-600">transferts d'argent</span>.
+                L&apos;infrastructure moderne pour vos <span className="text-blue-600">transferts d&apos;argent</span>.
               </h1>
               <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-slate-600">
-                Pilotez, surveillez et optimisez vos flux financiers depuis une interface unifiée. Connecté nativement à l'écosystème performant de votre API Laravel.
+                Pilotez, surveillez et optimisez vos flux financiers depuis une interface unifiée. Connecté nativement à l&apos;écosystème performant de votre API Laravel.
               </p>
               <div className="mt-10 flex items-center justify-center gap-x-4">
                 <Link

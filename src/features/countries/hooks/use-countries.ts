@@ -11,6 +11,8 @@ export interface Country {
     currency: string;
     phonecode: number;
     status: boolean | string | number;
+    forced_operator_id: number | null;
+    forced_operator?: { id: number; name: string; code: string } | null;
 }
 
 export function useCountries() {

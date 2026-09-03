@@ -6,12 +6,12 @@ export function TransactionTable() {
   const { data: transactions, isLoading, isError } = useTransactions();
 
   if (isLoading) return <div className="text-center py-8 text-sm text-slate-500 animate-pulse">Chargement du grand livre des transactions...</div>;
-  if (isError) return <div className="text-center py-8 text-sm text-red-500 font-medium">⚠️ Échec de connexion avec l'API Digit-Gateway.</div>;
+  if (isError) return <div className="text-center py-8 text-sm text-red-500 font-medium">⚠️ Échec de connexion avec l&apos;API Digit-Gateway.</div>;
 
   return (
       <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xl shadow-slate-100/40">
         <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-          <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Journal d'Audit Global</h2>
+          <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Journal d&apos;Audit Global</h2>
           <span className="text-xs bg-slate-200/60 text-slate-700 px-2.5 py-1 rounded-lg font-semibold">
           {transactions?.length || 0} Flux référencés
         </span>
@@ -108,7 +108,7 @@ export function TransactionTable() {
             {transactions?.length === 0 && (
                 <tr>
                   <td colSpan={7} className="px-6 py-12 text-center text-sm text-slate-400">
-                    Aucun flux financier n'a encore transité par la passerelle aujourd'hui.
+                    Aucun flux financier n&apos;a encore transité par la passerelle aujourd&apos;hui.
                   </td>
                 </tr>
             )}

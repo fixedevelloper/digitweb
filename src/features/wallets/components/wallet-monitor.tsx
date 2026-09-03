@@ -11,7 +11,7 @@ export function WalletMonitor({ onAdjustWallet }: WalletMonitorProps) {
     const { data: wallets, totalSystemLiquidity, isLoading, isError } = useWallets();
 
     if (isLoading) return <div className="text-center py-12 text-sm text-slate-500 animate-pulse">Calcul de la masse monétaire globale...</div>;
-    if (isError) return <div className="text-center py-12 text-sm text-red-500 font-medium">⚠️ Erreur lors de l'audit des portefeuilles.</div>;
+    if (isError) return <div className="text-center py-12 text-sm text-red-500 font-medium">⚠️ Erreur lors de l&apos;audit des portefeuilles.</div>;
 
     return (
         <div className="space-y-6">
@@ -115,7 +115,7 @@ export function WalletMonitor({ onAdjustWallet }: WalletMonitorProps) {
                         {wallets?.length === 0 && (
                             <tr>
                                 <td colSpan={onAdjustWallet ? 5 : 4} className="px-6 py-12 text-center text-sm text-slate-400">
-                                    Aucun portefeuille n'est provisionné dans le système.
+                                    Aucun portefeuille n&apos;est provisionné dans le système.
                                 </td>
                             </tr>
                         )}

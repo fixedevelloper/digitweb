@@ -1,7 +1,5 @@
 'use client';
 
-import { useCountries } from '../hooks/use-countries';
-
 export function CountryTable() {/*
     const { data: countries, isLoading, isError, toggleCountryStatus } = useCountries();
 

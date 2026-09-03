@@ -86,7 +86,7 @@ export function TransferForm() {
               <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-6 space-y-5">
                 <div>
                   <h3 className="text-base font-bold text-slate-900">Initier un transfert de fonds</h3>
-                  <p className="text-xs text-slate-500 mt-0.5">Le débit s'effectuera directement sur la balance de l'initiateur.</p>
+                  <p className="text-xs text-slate-500 mt-0.5">Le débit s&apos;effectuera directement sur la balance de l&apos;initiateur.</p>
                 </div>
 
                 {validationError && (

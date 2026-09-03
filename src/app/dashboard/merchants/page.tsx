@@ -38,7 +38,7 @@ export default function MerchantsPage() {
                     Gestion des Marchands B2B
                 </h1>
                 <p className="text-xs text-slate-500 mt-0.5">
-                    Surveille la balance des intégrateurs, bascule les environnements d'API et gère les droits d'accès à la passerelle de production.
+                    Surveille la balance des intégrateurs, bascule les environnements d&apos;API et gère les droits d&apos;accès à la passerelle de production.
                 </p>
             </div>
 
@@ -51,7 +51,7 @@ export default function MerchantsPage() {
                             <th className="py-3 px-5">Entreprise / Contact</th>
                             <th className="py-3 px-5">Environnement</th>
                             <th className="py-3 px-5 text-right">Balance Actuelle</th>
-                            <th className="py-3 px-5 text-center">Réseau d'Accès</th>
+                            <th className="py-3 px-5 text-center">Réseau d&apos;Accès</th>
                             <th className="py-3 px-5 text-right">Actions</th>
                         </tr>
                         </thead>
@@ -124,7 +124,7 @@ export default function MerchantsPage() {
 
                 {merchants?.length === 0 && (
                     <div className="p-8 text-center text-slate-400 font-medium">
-                        Aucun marchand n'est actuellement configuré sur la plateforme.
+                        Aucun marchand n&apos;est actuellement configuré sur la plateforme.
                     </div>
                 )}
             </div>
