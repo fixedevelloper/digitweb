@@ -59,6 +59,16 @@ export interface Transaction {
   completed_at: string | null;
   created_at: string;
 }
+export interface PaginatedResponse<T> {
+  data: T[];
+  current_page: number;
+  last_page: number;
+  per_page: number;
+  total: number;
+  from: number | null;
+  to: number | null;
+}
+
 export interface CreateTransferInput {
   recipient_name: string;
   recipient_phone: string;

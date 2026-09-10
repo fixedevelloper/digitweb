@@ -4,13 +4,19 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {authApi} from "../../features/auth/services/auth-api";
 
-export function Sidebar() {
+interface SidebarProps {
+    isOpen: boolean;
+    onClose: () => void;
+}
+
+export function Sidebar({ isOpen, onClose }: SidebarProps) {
     const pathname = usePathname();
     const router = useRouter();
 
     const mainMenuItems = [
         { label: "Vue d'ensemble", href: "/dashboard", icon: "📊" },
         { label: "Flux & Transactions", href: "/dashboard/transactions", icon: "💸" },
+        { label: "Utilisateurs", href: "/dashboard/users", icon: "👤" },
         { label: "Gestion Marchands", href: "/dashboard/merchants", icon: "🏢" },
     ];
 
@@ -40,6 +46,7 @@ export function Sidebar() {
             <Link
                 key={item.href}
                 href={item.href}
+                onClick={onClose}
                 className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
                     isActive
                         ? "bg-blue-600 text-white shadow-md shadow-blue-600/10"
@@ -53,7 +60,21 @@ export function Sidebar() {
     };
 
     return (
-        <aside className="hidden md:flex flex-col w-64 bg-slate-900 text-slate-300 border-r border-slate-800">
+        <>
+            {/* Overlay mobile : cliquer en dehors du panneau referme le menu */}
+            {isOpen && (
+                <div
+                    className="fixed inset-0 z-40 bg-slate-950/60 md:hidden"
+                    onClick={onClose}
+                    aria-hidden="true"
+                />
+            )}
+
+            <aside
+                className={`fixed inset-y-0 left-0 z-50 flex flex-col w-64 bg-slate-900 text-slate-300 border-r border-slate-800 transition-transform duration-200 ease-in-out md:static md:z-auto md:translate-x-0 ${
+                    isOpen ? 'translate-x-0' : '-translate-x-full'
+                }`}
+            >
             {/* Brand Header */}
             <div className="h-16 flex items-center px-6 border-b border-slate-800 bg-slate-950/40">
                 <div className="h-7 w-7 rounded bg-blue-600 flex items-center justify-center mr-2.5 font-bold text-white text-sm">
@@ -62,6 +83,13 @@ export function Sidebar() {
                 <span className="text-base font-bold tracking-tight text-white">
                     Digit<span className="text-blue-500">Gateway</span> <span className="text-[10px] bg-blue-500/10 text-blue-400 px-1.5 py-0.5 rounded ml-1 uppercase font-semibold">Admin</span>
                 </span>
+                <button
+                    onClick={onClose}
+                    aria-label="Fermer le menu"
+                    className="ml-auto text-slate-400 hover:text-white md:hidden"
+                >
+                    ✕
+                </button>
             </div>
 
             {/* Nav List */}
@@ -99,6 +127,7 @@ export function Sidebar() {
                     🚪 Fermer la console
                 </button>
             </div>
-        </aside>
+            </aside>
+        </>
     );
 }

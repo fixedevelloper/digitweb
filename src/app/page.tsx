@@ -16,13 +16,17 @@ export default function Home() {
               Digit<span className="text-blue-600">Gateway</span>
             </span>
             </div>
-            <div>
-              <Link
-                  href="/login"
-                  className="inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+            <div className="flex items-center gap-3">
+              <a
+                  href="/apk/app-arm64-v8a-release.apk"
+                  download="DigitGateway.apk"
+                  className="hidden sm:inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-all"
               >
-                Accéder au Dashboard
-              </Link>
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" />
+                </svg>
+                Télécharger l&apos;app
+              </a>
             </div>
           </div>
         </header>
@@ -41,7 +45,7 @@ export default function Home() {
               <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-slate-600">
                 Pilotez, surveillez et optimisez vos flux financiers depuis une interface unifiée. Connecté nativement à l&apos;écosystème performant de votre API Laravel.
               </p>
-              <div className="mt-10 flex items-center justify-center gap-x-4">
+              <div className="mt-10 flex flex-wrap items-center justify-center gap-x-4 gap-y-3">
                 <Link
                     href="/login"
                     className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-md shadow-blue-500/10 hover:bg-blue-500 transition-all"
@@ -49,12 +53,25 @@ export default function Home() {
                   Connecter ma session
                 </Link>
                 <a
+                    href="/apk/app-arm64-v8a-release.apk"
+                    download="DigitGateway.apk"
+                    className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-md hover:bg-slate-800 transition-all"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" />
+                  </svg>
+                  Télécharger l&apos;app Android
+                </a>
+                <a
                     href="#features"
                     className="text-sm font-semibold leading-6 text-slate-700 hover:text-slate-900 transition-colors"
                 >
                   En savoir plus <span aria-hidden="true">→</span>
                 </a>
               </div>
+              <p className="mt-4 text-xs text-slate-400">
+                Fichier APK (Android) &bull; Autorisez l&apos;installation depuis des sources inconnues si nécessaire.
+              </p>
             </div>
           </section>
 
@@ -133,7 +150,7 @@ export default function Home() {
               &copy; {new Date().getFullYear()} <span className="text-white font-medium">Digit-Gateway</span>. Tous droits réservés.
             </div>
             <div className="flex space-x-6 text-xs">
-              <span className="text-slate-500">Stack : Next.js 16 &bull; Laravel API &bull; TanStack Query</span>
+              <span className="text-slate-500"></span>
             </div>
           </div>
         </footer>

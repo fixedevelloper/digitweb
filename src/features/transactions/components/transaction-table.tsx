@@ -1,23 +1,117 @@
 'use client';
 
+import { useState } from 'react';
 import { useTransactions } from '../hooks/use-transactions';
+import { transactionApi } from '../services/transaction-api';
 
 export function TransactionTable() {
-  const { data: transactions, isLoading, isError } = useTransactions();
+  const [page, setPage] = useState(1);
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [exportingFormat, setExportingFormat] = useState<'excel' | 'pdf' | null>(null);
 
-  if (isLoading) return <div className="text-center py-8 text-sm text-slate-500 animate-pulse">Chargement du grand livre des transactions...</div>;
-  if (isError) return <div className="text-center py-8 text-sm text-red-500 font-medium">⚠️ Échec de connexion avec l&apos;API Digit-Gateway.</div>;
+  const { data: paginated, isLoading, isFetching, isError } = useTransactions(page, 20, { dateFrom, dateTo });
+  const transactions = paginated?.data;
+
+  const handleDateFromChange = (value: string) => {
+    setDateFrom(value);
+    setPage(1);
+  };
+
+  const handleDateToChange = (value: string) => {
+    setDateTo(value);
+    setPage(1);
+  };
+
+  const handleResetDates = () => {
+    setDateFrom('');
+    setDateTo('');
+    setPage(1);
+  };
+
+  const handleExport = async (format: 'excel' | 'pdf') => {
+    setExportingFormat(format);
+    try {
+      await transactionApi.exportTransactions(format, { dateFrom, dateTo });
+    } catch {
+      alert("Erreur : impossible de générer l'export. Réessaie dans quelques instants.");
+    } finally {
+      setExportingFormat(null);
+    }
+  };
 
   return (
       <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xl shadow-slate-100/40">
-        <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-          <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Journal d&apos;Audit Global</h2>
-          <span className="text-xs bg-slate-200/60 text-slate-700 px-2.5 py-1 rounded-lg font-semibold">
-          {transactions?.length || 0} Flux référencés
-        </span>
+        <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Journal d&apos;Audit Global</h2>
+            <span className="text-xs bg-slate-200/60 text-slate-700 px-2.5 py-1 rounded-lg font-semibold">
+              {paginated?.total ?? 0} Flux référencés
+            </span>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            {/* Filtre par plage de dates */}
+            <label className="flex items-center gap-1.5 text-slate-500 font-medium">
+              Du
+              <input
+                  type="date"
+                  value={dateFrom}
+                  max={dateTo || undefined}
+                  onChange={(e) => handleDateFromChange(e.target.value)}
+                  className="px-2 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
+              />
+            </label>
+            <label className="flex items-center gap-1.5 text-slate-500 font-medium">
+              Au
+              <input
+                  type="date"
+                  value={dateTo}
+                  min={dateFrom || undefined}
+                  onChange={(e) => handleDateToChange(e.target.value)}
+                  className="px-2 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
+              />
+            </label>
+            {(dateFrom || dateTo) && (
+                <button
+                    onClick={handleResetDates}
+                    className="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-500 hover:bg-slate-200/60 transition-colors"
+                >
+                  ✕ Réinitialiser
+                </button>
+            )}
+
+            {/* Exports */}
+            <div className="flex items-center gap-2 ml-0 lg:ml-2 pl-0 lg:pl-2 lg:border-l lg:border-slate-200">
+              <button
+                  onClick={() => handleExport('excel')}
+                  disabled={exportingFormat !== null}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {exportingFormat === 'excel' ? '⏳ Export...' : '📊 Excel'}
+              </button>
+              <button
+                  onClick={() => handleExport('pdf')}
+                  disabled={exportingFormat !== null}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold text-red-700 bg-red-50 hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {exportingFormat === 'pdf' ? '⏳ Export...' : '📄 PDF'}
+              </button>
+            </div>
+          </div>
         </div>
 
-        <div className="overflow-x-auto">
+        {isLoading && (
+            <div className="text-center py-8 text-sm text-slate-500 animate-pulse">Chargement du grand livre des transactions...</div>
+        )}
+
+        {isError && (
+            <div className="text-center py-8 text-sm text-red-500 font-medium">⚠️ Échec de connexion avec l&apos;API Digit-Gateway.</div>
+        )}
+
+        {!isLoading && !isError && (
+        <>
+        <div className={`overflow-x-auto transition-opacity ${isFetching ? 'opacity-60' : ''}`}>
           <table className="w-full text-left border-collapse">
             <thead>
             <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
@@ -108,13 +202,45 @@ export function TransactionTable() {
             {transactions?.length === 0 && (
                 <tr>
                   <td colSpan={7} className="px-6 py-12 text-center text-sm text-slate-400">
-                    Aucun flux financier n&apos;a encore transité par la passerelle aujourd&apos;hui.
+                    {dateFrom || dateTo
+                        ? 'Aucun flux financier ne correspond à cette plage de dates.'
+                        : "Aucun flux financier n'a encore transité par la passerelle aujourd'hui."}
                   </td>
                 </tr>
             )}
             </tbody>
           </table>
         </div>
+
+        {paginated && paginated.last_page > 1 && (
+            <div className="px-6 py-3.5 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between gap-4">
+              <span className="text-xs text-slate-500 font-medium">
+                {paginated.from ?? 0}–{paginated.to ?? 0} sur {paginated.total}
+              </span>
+
+              <div className="flex items-center gap-2">
+                <button
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={page <= 1 || isFetching}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  ← Précédent
+                </button>
+                <span className="text-xs font-bold text-slate-700 px-1">
+                  Page {paginated.current_page} / {paginated.last_page}
+                </span>
+                <button
+                    onClick={() => setPage((p) => Math.min(paginated.last_page, p + 1))}
+                    disabled={page >= paginated.last_page || isFetching}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  Suivant →
+                </button>
+              </div>
+            </div>
+        )}
+        </>
+        )}
       </div>
   );
 }

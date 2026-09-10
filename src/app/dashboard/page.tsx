@@ -1,6 +1,16 @@
 'use client';
 
 import { useDashboardStats } from '@/features/dashboard/hooks/use-dashboard-stats';
+import {
+    Area,
+    AreaChart,
+    CartesianGrid,
+    Legend,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
+} from 'recharts';
 
 export default function DashboardOverview() {
     const { data: stats, isLoading, isError, error } = useDashboardStats();
@@ -12,8 +22,8 @@ export default function DashboardOverview() {
                     <div className="h-9 w-48 bg-slate-200 rounded-lg" />
                     <div className="h-4 w-80 bg-slate-100 rounded mt-2" />
                 </div>
-                <div className="grid gap-4 md:grid-cols-3">
-                    {[1, 2, 3].map((n) => (
+                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                    {[1, 2, 3, 4].map((n) => (
                         <div key={n} className="p-6 bg-white rounded-xl border border-slate-200 shadow-sm h-28" />
                     ))}
                 </div>
@@ -44,7 +54,7 @@ export default function DashboardOverview() {
             </div>
 
             {/* Grille d'indicateurs clés de performance */}
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                 {/* Volume de Transactions Mensuel */}
                 <div className="p-6 bg-slate-900 rounded-2xl border border-slate-800 shadow-lg text-white">
                     <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
@@ -84,6 +94,19 @@ export default function DashboardOverview() {
                         Ratio d&apos;exécution des passerelles de paiement
                     </p>
                 </div>
+
+                {/* Comptes actifs */}
+                <div className="p-6 bg-white rounded-2xl border border-slate-200/80 shadow-sm">
+                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                        Comptes actifs
+                    </p>
+                    <p className="text-2xl font-black text-slate-900 mt-2">
+                        {(stats?.activeAccountsCount ?? 0).toLocaleString()}
+                    </p>
+                    <p className="text-[10px] text-slate-400 mt-3">
+                        Utilisateurs avec un compte activé
+                    </p>
+                </div>
             </div>
 
             {/* Zone du Diagramme de Courbes */}
@@ -99,9 +122,42 @@ export default function DashboardOverview() {
                     </div>
                 </div>
 
-                {/* Note : Tu peux intégrer ici directement ton composant de rendu Recharts, Chart.js ou le widget interactif ci-dessus */}
-                <div className="w-full">
-                    {/* Composant ou Iframe du module graphique de courbes branché sur `stats.dailyHistory` */}
+                <div className="w-full h-[320px]">
+                    {stats?.dailyHistory && stats.dailyHistory.length > 0 ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={stats.dailyHistory} margin={{ top: 4, right: 8, left: 8, bottom: 0 }}>
+                                <defs>
+                                    <linearGradient id="creditGradient" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.35} />
+                                        <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                                    </linearGradient>
+                                    <linearGradient id="debitGradient" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.35} />
+                                        <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                                <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                                <YAxis
+                                    tick={{ fontSize: 11, fill: '#64748b' }}
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tickFormatter={(value: number) => value.toLocaleString()}
+                                />
+                                <Tooltip
+                                    formatter={(value) => `${Number(value).toLocaleString()} XAF`}
+                                    contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 12 }}
+                                />
+                                <Legend wrapperStyle={{ fontSize: 12 }} />
+                                <Area type="monotone" dataKey="credit" name="Crédits (dépôts)" stroke="#10b981" fill="url(#creditGradient)" strokeWidth={2} />
+                                <Area type="monotone" dataKey="debit" name="Débits (retraits/transferts)" stroke="#f43f5e" fill="url(#debitGradient)" strokeWidth={2} />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    ) : (
+                        <div className="h-full flex items-center justify-center text-sm text-slate-400">
+                            Aucune donnée sur les 7 derniers jours.
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
