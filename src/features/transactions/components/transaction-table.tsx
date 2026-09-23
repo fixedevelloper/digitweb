@@ -161,6 +161,11 @@ export function TransactionTable() {
                       <div className="text-slate-900 font-bold text-sm">
                         {Number(tx.amount_sent).toLocaleString()} {tx.currency_sent}
                       </div>
+                      {tx.currency_received && tx.currency_received !== tx.currency_sent && (
+                        <div className="text-[10px] text-amber-600 font-semibold mt-0.5">
+                          → {Number(tx.amount_to_receive).toLocaleString()} {tx.currency_received} (1 {tx.currency_received} = {Number(tx.exchange_rate).toLocaleString()} {tx.currency_sent})
+                        </div>
+                      )}
                     </td>
 
                     {/* Marge bénéficiaire de la plateforme */}

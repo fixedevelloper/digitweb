@@ -24,6 +24,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         { label: "Moniteur des Wallets", href: "/dashboard/wallets", icon: "🏦" },
         { label: "Routage Opérateurs", href: "/dashboard/operators", icon: "📶" },
         { label: "Corridors Pays", href: "/dashboard/countries", icon: "🌍" },
+        { label: "Taux de Change", href: "/dashboard/exchange-rates", icon: "💱" },
     ];
 
     const handleLogout = async () => {

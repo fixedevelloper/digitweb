@@ -417,7 +417,7 @@ export default function CountriesPage() {
                                                         ?.filter(op => op.country_id === country.id)
                                                         .map(op => (
                                                             <option key={op.id} value={op.id}>
-                                                                {op.name} ({op.code}){!op.status ? ' — coupé' : ''}
+                                                                {op.name} ({op.code} · {op.currency}){!op.status ? ' — coupé' : ''}
                                                             </option>
                                                         ))}
                                                 </select>
@@ -451,7 +451,7 @@ export default function CountriesPage() {
                                             {country.forced_operator && (
                                                 <div className="flex items-center justify-between text-[11px] bg-amber-50 border border-amber-200/70 text-amber-800 px-3 py-2 rounded-xl font-bold">
                                                     <span>⚡ Routage forcé :</span>
-                                                    <span>{country.forced_operator.name} ({country.forced_operator.code})</span>
+                                                    <span>{country.forced_operator.name} ({country.forced_operator.code} · {country.forced_operator.currency})</span>
                                                 </div>
                                             )}
                                         </div>

@@ -13,6 +13,7 @@ export interface Operator {
   country_id: number;
   name: string;
   code: string;
+  currency: string; // Devise envoyée à Digitwave ; frais et limites exprimés dans cette devise
   logo_url: string | null;
   status: boolean;
   fixed_fee: number;
@@ -34,6 +35,8 @@ export interface Transaction {
   recipient_name: string | null;
   recipient_phone: string;
   recipient_operator: string;
+  operator_id: number | null;
+  quote_id: string | null;
 
   // Détails financiers
   amount_sent: number;

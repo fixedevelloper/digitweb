@@ -5,6 +5,14 @@ import { useOperators } from '@/features/operators/hooks/use-operators';
 import { useUpdateOperator } from '@/features/operators/hooks/use-update-operator';
 import { useCountries } from '@/features/countries/hooks/use-countries'; // Récupérer la liste pour le Select du pays
 import { Button } from '@/components/ui/button';
+import { CURRENCIES, WALLET_CURRENCY } from '@/features/exchange-rates/currencies';
+
+// Message d'erreur renvoyé par Laravel (422 de validation, ex: code déjà utilisé dans ce pays et cette devise)
+const apiErrorMessage = (error: unknown): string => {
+    const data = (error as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } })?.response?.data;
+    const firstFieldError = data?.errors ? Object.values(data.errors)[0]?.[0] : undefined;
+    return firstFieldError || data?.message || "L'enregistrement de l'opérateur a échoué.";
+};
 
 export default function OperatorsPage() {
     const { data: operators, isLoading, error } = useOperators();
@@ -23,6 +31,7 @@ export default function OperatorsPage() {
     const [formData, setFormData] = useState<{
         name: string;
         code: string;
+        currency: string;
         country_id: string;
         prefix_regex: string;
         phone_length: number;
@@ -35,6 +44,7 @@ export default function OperatorsPage() {
     }>({
         name: '',
         code: '',
+        currency: WALLET_CURRENCY,
         country_id: '',
         prefix_regex: '',
         phone_length: 9,
@@ -79,7 +89,7 @@ export default function OperatorsPage() {
         setEditingOperatorId(null);
         setIsCreating(false);
         setFormData({
-            name: '', code: '', country_id: '', prefix_regex: '',
+            name: '', code: '', currency: WALLET_CURRENCY, country_id: '', prefix_regex: '',
             phone_length: 9, fixed_fee: 0, percent_fee: 0,
             min_amount: 100, max_amount: 1000000, logo: null, logoPreview: null
         });
@@ -101,6 +111,7 @@ export default function OperatorsPage() {
         setFormData({
             name: operator.name,
             code: operator.code,
+            currency: operator.currency || WALLET_CURRENCY,
             country_id: String(operator.country_id || ''),
             prefix_regex: operator.prefix_regex || '',
             phone_length: Number(operator.phone_length),
@@ -135,6 +146,7 @@ export default function OperatorsPage() {
         // Sécuriser les valeurs pour éviter d'envoyer des valeurs 'undefined' ou 'null' textuels
         dataPayload.append('name', formData.name || '');
         dataPayload.append('code', formData.code || '');
+        dataPayload.append('currency', formData.currency || WALLET_CURRENCY);
         dataPayload.append('country_id', String(formData.country_id || ''));
         dataPayload.append('prefix_regex', formData.prefix_regex || '');
         dataPayload.append('phone_length', String(formData.phone_length ?? 9));
@@ -164,6 +176,27 @@ export default function OperatorsPage() {
         }
     };
 
+    const currencyField = (
+        <div className="space-y-1">
+            <label className="font-bold text-slate-500 uppercase tracking-wider text-[10px]">Devise Opérateur</label>
+            <select
+                required
+                value={formData.currency}
+                onChange={e => setFormData({ ...formData, currency: e.target.value })}
+                className="w-full px-3 py-2 border border-slate-200 bg-white rounded-lg focus:outline-none focus:border-blue-500 text-xs font-semibold"
+            >
+                {CURRENCIES.map((currency) => (
+                    <option key={currency} value={currency}>{currency}</option>
+                ))}
+            </select>
+            {formData.currency !== WALLET_CURRENCY && (
+                <p className="text-[10px] text-amber-600 font-semibold leading-snug">
+                    Le client saisit en {WALLET_CURRENCY}, Digitwave reçoit des {formData.currency} au taux admin. Frais et limites en {formData.currency}.
+                </p>
+            )}
+        </div>
+    );
+
     return (
         <div className="p-6 max-w-7xl mx-auto space-y-6 animate-in fade-in duration-150">
 
@@ -184,6 +217,12 @@ export default function OperatorsPage() {
                     ＋ Ajouter un Opérateur
                 </button>
             </div>
+
+            {updateOperatorMutation.isError && (
+                <div className="bg-red-50 border border-red-200 text-red-700 text-xs font-semibold rounded-xl px-4 py-3">
+                    {apiErrorMessage(updateOperatorMutation.error)}
+                </div>
+            )}
 
             {/* Formulaire de création d'un opérateur */}
             {isCreating && (
@@ -221,7 +260,7 @@ export default function OperatorsPage() {
                         </div>
 
                         {/* Informations générales */}
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                             <div className="space-y-1">
                                 <label className="font-bold text-slate-500 uppercase tracking-wider text-[10px]">Nom de l&apos;Opérateur</label>
                                 <input
@@ -232,7 +271,7 @@ export default function OperatorsPage() {
                                 />
                             </div>
                             <div className="space-y-1">
-                                <label className="font-bold text-slate-500 uppercase tracking-wider text-[10px]">Code Unique</label>
+                                <label className="font-bold text-slate-500 uppercase tracking-wider text-[10px]">Code (unique par pays et devise)</label>
                                 <input
                                     type="text" required placeholder="Ex: MTN_CM"
                                     value={formData.code}
@@ -254,6 +293,7 @@ export default function OperatorsPage() {
                                     ))}
                                 </select>
                             </div>
+                            {currencyField}
                         </div>
 
                         {/* Paramètres Techniques et frais */}
@@ -276,7 +316,7 @@ export default function OperatorsPage() {
                                 />
                             </div>
                             <div className="space-y-1">
-                                <label className="font-bold text-slate-500 uppercase tracking-wider text-[10px]">Frais Fixes</label>
+                                <label className="font-bold text-slate-500 uppercase tracking-wider text-[10px]">Frais Fixes ({formData.currency})</label>
                                 <input
                                     type="number" value={formData.fixed_fee}
                                     onChange={e => setFormData({ ...formData, fixed_fee: Number(e.target.value) })}
@@ -292,7 +332,7 @@ export default function OperatorsPage() {
                                 />
                             </div>
                             <div className="space-y-1">
-                                <label className="font-bold text-slate-500 uppercase tracking-wider text-[10px]">Montant Min</label>
+                                <label className="font-bold text-slate-500 uppercase tracking-wider text-[10px]">Montant Min ({formData.currency})</label>
                                 <input
                                     type="number" value={formData.min_amount}
                                     onChange={e => setFormData({ ...formData, min_amount: Number(e.target.value) })}
@@ -300,7 +340,7 @@ export default function OperatorsPage() {
                                 />
                             </div>
                             <div className="space-y-1">
-                                <label className="font-bold text-slate-500 uppercase tracking-wider text-[10px]">Montant Max</label>
+                                <label className="font-bold text-slate-500 uppercase tracking-wider text-[10px]">Montant Max ({formData.currency})</label>
                                 <input
                                     type="number" value={formData.max_amount}
                                     onChange={e => setFormData({ ...formData, max_amount: Number(e.target.value) })}
@@ -355,7 +395,10 @@ export default function OperatorsPage() {
                                                 {isEditing ? formData.name || operator.name : operator.name}
                                             </h3>
                                             <div className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider mt-0.5">
-                                                Code : {operator.code} • Corridor : {operator.country?.name || 'Inconnu'}
+                                                Code : {operator.code} • Corridor : {operator.country?.name || 'Inconnu'} •{' '}
+                                                <span className={operator.currency !== WALLET_CURRENCY ? 'text-amber-600' : ''}>
+                                                    {operator.currency}
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
@@ -424,7 +467,7 @@ export default function OperatorsPage() {
                                                 />
                                             </div>
                                             <div className="space-y-1">
-                                                <label className="font-bold text-slate-500 uppercase tracking-wider">Frais Fixes ({operator.country?.currency})</label>
+                                                <label className="font-bold text-slate-500 uppercase tracking-wider">Frais Fixes ({formData.currency})</label>
                                                 <input
                                                     type="number" value={formData.fixed_fee}
                                                     onChange={e => setFormData({ ...formData, fixed_fee: Number(e.target.value) })}
@@ -440,21 +483,22 @@ export default function OperatorsPage() {
                                                 />
                                             </div>
                                             <div className="space-y-1">
-                                                <label className="font-bold text-slate-500 uppercase tracking-wider">Montant Min</label>
+                                                <label className="font-bold text-slate-500 uppercase tracking-wider">Montant Min ({formData.currency})</label>
                                                 <input
                                                     type="number" value={formData.min_amount}
                                                     onChange={e => setFormData({ ...formData, min_amount: Number(e.target.value) })}
                                                     className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500"
                                                 />
                                             </div>
-                                            <div className="space-y-1 col-span-2">
-                                                <label className="font-bold text-slate-500 uppercase tracking-wider">Montant Max</label>
+                                            <div className="space-y-1">
+                                                <label className="font-bold text-slate-500 uppercase tracking-wider">Montant Max ({formData.currency})</label>
                                                 <input
                                                     type="number" value={formData.max_amount}
                                                     onChange={e => setFormData({ ...formData, max_amount: Number(e.target.value) })}
                                                     className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500"
                                                 />
                                             </div>
+                                            <div className="col-span-2">{currencyField}</div>
                                         </div>
 
                                         <div className="flex justify-end gap-2 pt-1">
@@ -481,7 +525,7 @@ export default function OperatorsPage() {
                                             <div className="space-y-1 bg-slate-50 p-2.5 border border-slate-100 rounded-xl">
                                                 <span className="block text-[10px] text-slate-400 font-bold uppercase tracking-wider">Frais & Commissions</span>
                                                 <div className="font-semibold text-slate-700 mt-0.5">
-                                                    Fixe : {Number(operator.fixed_fee).toLocaleString()} {operator.country?.currency}
+                                                    Fixe : {Number(operator.fixed_fee).toLocaleString()} {operator.currency}
                                                 </div>
                                                 <div className="text-blue-600 font-bold text-[11px] mt-0.5">
                                                     Taux système : {Number(operator.percent_fee * 100).toFixed(2)} %
@@ -492,7 +536,7 @@ export default function OperatorsPage() {
                                         <div className="flex items-center justify-between text-[11px] bg-slate-900 text-slate-400 px-3.5 py-2 rounded-xl font-mono">
                                             <span>Limites d&apos;envoi :</span>
                                             <span className="text-white font-bold">
-                                                {Number(operator.min_amount).toLocaleString()} à {Number(operator.max_amount).toLocaleString()} {operator.country?.currency}
+                                                {Number(operator.min_amount).toLocaleString()} à {Number(operator.max_amount).toLocaleString()} {operator.currency}
                                             </span>
                                         </div>
                                     </div>

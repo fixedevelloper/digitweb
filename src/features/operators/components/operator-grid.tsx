@@ -70,7 +70,7 @@ export function OperatorGrid() {
                             <div className="flex justify-between">
                                 <span className="text-slate-400 font-medium">Limites de transfert :</span>
                                 <span className="font-bold text-slate-700">
-                  {Number(operator.min_amount).toLocaleString()} - {Number(operator.max_amount).toLocaleString()} XAF
+                  {Number(operator.min_amount).toLocaleString()} - {Number(operator.max_amount).toLocaleString()} {operator.currency}
                 </span>
                             </div>
                         </div>
@@ -79,7 +79,7 @@ export function OperatorGrid() {
                         <div className="mt-4 bg-slate-50 rounded-xl p-3 grid grid-cols-2 gap-2 text-center text-xs">
                             <div className="border-r border-slate-200">
                                 <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Frais Fixe</div>
-                                <div className="font-bold text-slate-800 mt-0.5">{Number(operator.fixed_fee).toLocaleString()} XAF</div>
+                                <div className="font-bold text-slate-800 mt-0.5">{Number(operator.fixed_fee).toLocaleString()} {operator.currency}</div>
                             </div>
                             <div>
                                 <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Frais Pourcentage</div>
