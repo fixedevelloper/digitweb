@@ -16,6 +16,7 @@ export function PortalSidebar({ isOpen, onClose }: PortalSidebarProps) {
 
   const menuItems = [
     { label: "Vue d'ensemble", href: '/portal/dashboard', icon: '📊' },
+    { label: 'Wallet & transactions', href: '/portal/dashboard/transactions', icon: '💳' },
     { label: 'Clés API', href: '/portal/dashboard/api-keys', icon: '🔑' },
   ];
 

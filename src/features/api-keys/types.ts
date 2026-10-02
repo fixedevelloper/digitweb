@@ -3,6 +3,7 @@ export const API_KEY_SCOPES = [
   { value: 'withdrawal.write', label: 'Retrait', description: 'Initier un retrait (cash-out)' },
   { value: 'deposit.write', label: 'Dépôt', description: 'Initier un dépôt (cash-in)' },
   { value: 'transactions.read', label: 'Lecture transactions', description: "Consulter l'historique et le statut des transactions" },
+  { value: 'wallet.read', label: 'Lecture du solde', description: 'Consulter le solde (GET /v1/gateway/wallet)' },
   { value: 'countries.read', label: 'Pays & opérateurs', description: 'Lister les pays et opérateurs disponibles' },
 ] as const;
 

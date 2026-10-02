@@ -3,11 +3,13 @@
 import Link from 'next/link';
 import { useMerchantProfile } from '@/features/merchant-auth/hooks/use-merchant-profile';
 import { useApiKeys } from '@/features/api-keys/hooks/use-api-keys';
+import { useMerchantWallet } from '@/features/merchant-wallet/hooks/use-merchant-wallet';
 import { getApiDocsUrl } from '@/lib/utils';
 
 export default function PortalOverviewPage() {
   const { data: merchant, isLoading: isMerchantLoading } = useMerchantProfile();
   const { data: apiKeys, isLoading: isKeysLoading } = useApiKeys();
+  const { data: wallet } = useMerchantWallet();
 
   if (isMerchantLoading) {
     return <div className="text-sm font-semibold text-slate-500 animate-pulse">Chargement de votre profil...</div>;
@@ -54,6 +56,27 @@ export default function PortalOverviewPage() {
         </div>
       </div>
 
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="p-6 bg-white rounded-2xl border border-slate-200/80 shadow-sm">
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Solde live</p>
+          <p className="text-lg font-black text-slate-900 mt-2">
+            {wallet ? `${wallet.balance.toLocaleString('fr-FR')} ${wallet.currency}` : '—'}
+          </p>
+          <Link href="/portal/dashboard/transactions" className="text-[11px] font-semibold text-blue-600 hover:text-blue-500 mt-1 inline-block">
+            Voir les transactions →
+          </Link>
+        </div>
+        <div className="p-6 bg-amber-50/60 rounded-2xl border border-amber-200 shadow-sm">
+          <p className="text-xs font-bold uppercase tracking-wider text-amber-700">Solde sandbox (fictif)</p>
+          <p className="text-lg font-black text-slate-900 mt-2">
+            {wallet ? `${wallet.sandbox_balance.toLocaleString('fr-FR')} ${wallet.currency}` : '—'}
+          </p>
+          <Link href="/portal/dashboard/transactions" className="text-[11px] font-semibold text-amber-700 hover:text-amber-600 mt-1 inline-block">
+            Transactions de test →
+          </Link>
+        </div>
+      </div>
+
       <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm space-y-4">
         <div>
           <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Démarrer l&apos;intégration</h2>
@@ -85,7 +108,12 @@ export default function PortalOverviewPage() {
               <a href={getApiDocsUrl()} target="_blank" rel="noopener noreferrer" className="font-semibold text-blue-600 hover:text-blue-500">
                 documentation complète des endpoints
               </a>{' '}
-              pour les schémas de requête/réponse.
+              pour les schémas de requête/réponse. En sandbox, les opérations sont simulées sur votre solde de test
+              (voir les numéros de test dans{' '}
+              <Link href="/portal/dashboard/transactions" className="font-semibold text-blue-600 hover:text-blue-500">
+                Wallet &amp; transactions
+              </Link>
+              ).
             </span>
           </li>
         </ol>
