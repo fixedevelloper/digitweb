@@ -83,13 +83,9 @@ export default function Home() {
               </Link>
               {' · '}
               Vous êtes un utilisateur de l&apos;app ?{' '}
-              <a href="/apk/digitwave-server-v7-1.apk" download="DigitGateway.apk" className="font-semibold text-slate-600 hover:text-slate-800">
+              <a href="/apk/app-arm64-v8a-release.apk" download="DigitGateway.apk" className="font-semibold text-slate-600 hover:text-slate-800">
                 Téléchargez DigitGateway Android
               </a>
-              {' · '}
-              <Link href="/login" className="font-semibold text-slate-600 hover:text-slate-800">
-                Console admin
-              </Link>
             </p>
           </div>
         </section>
