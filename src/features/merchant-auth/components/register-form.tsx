@@ -37,7 +37,7 @@ export function MerchantRegisterForm() {
         </div>
         <h2 className="text-2xl font-bold tracking-tight text-slate-900">Créer un compte marchand</h2>
         <p className="text-sm text-slate-500 mt-1 text-center">
-          Intégrez la passerelle DigitGateway à vos systèmes. Vous démarrez en environnement sandbox.
+          Intégrez la passerelle DigitaGateway à vos systèmes. Vous démarrez en environnement sandbox.
         </p>
       </div>
 

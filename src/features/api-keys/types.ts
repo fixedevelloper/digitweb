@@ -1,5 +1,6 @@
 export const API_KEY_SCOPES = [
   { value: 'transfer.write', label: 'Envoi de transfert', description: "Initier un transfert d'argent" },
+  { value: 'bank_transfer.write', label: 'Virement bancaire', description: 'Initier un virement bancaire (GET /v1/gateway/bank-countries, POST /v1/gateway/bank-transfers)' },
   { value: 'withdrawal.write', label: 'Retrait', description: 'Initier un retrait (cash-out)' },
   { value: 'deposit.write', label: 'Dépôt', description: 'Initier un dépôt (cash-in)' },
   { value: 'transactions.read', label: 'Lecture transactions', description: "Consulter l'historique et le statut des transactions" },

@@ -50,7 +50,7 @@ export default function UsersPage() {
 
     const whatsappHref = result
         ? `https://wa.me/${result.phone}?text=${encodeURIComponent(
-              `Bonjour ${result.userName}, voici votre nouveau mot de passe Digit Gateway : ${result.password}\n\nMerci de le changer dès votre prochaine connexion.`
+              `Bonjour ${result.userName}, voici votre nouveau mot de passe Digita Gateway : ${result.password}\n\nMerci de le changer dès votre prochaine connexion.`
           )}`
         : '#';
 

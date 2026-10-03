@@ -53,7 +53,7 @@ export function PortalSidebar({ isOpen, onClose }: PortalSidebarProps) {
             DG
           </div>
           <span className="text-base font-bold tracking-tight text-white">
-            Digit<span className="text-blue-500">Gateway</span>{' '}
+            Digita<span className="text-blue-500">Gateway</span>{' '}
             <span className="text-[10px] bg-blue-500/10 text-blue-400 px-1.5 py-0.5 rounded ml-1 uppercase font-semibold">
               Merchant
             </span>

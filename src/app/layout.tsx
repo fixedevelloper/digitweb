@@ -6,7 +6,7 @@ import Providers from "./providers";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-    title: "Digit-Gateway | Dashboard Core Fintech",
+    title: "Digita-Gateway | Dashboard Core Fintech",
     description: "Infrastructure moderne de transfert d'argent connectée à l'API Laravel.",
 };
 

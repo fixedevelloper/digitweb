@@ -53,7 +53,9 @@ export interface Transaction {
   currency_received: string;
 
   // États de l'opérateur
-  status: 'pending' | 'processing' | 'success' | 'failed' | 'reversed';
+  status: 'pending' | 'pending_manual_review' | 'assigned' | 'processing' | 'success' | 'failed' | 'rejected' | 'cancelled' | 'reversed';
+  service?: 'MOBILE_MONEY' | 'BANK_TRANSFER';
+  processing_mode?: 'AUTOMATIC' | 'MANUAL';
   failure_code: string | null;
   failure_reason: string | null;
 

@@ -15,7 +15,7 @@ export default function ApiKeysPage() {
         <div>
           <h1 className="text-xl font-black text-slate-900 tracking-tight uppercase">Clés API</h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Générez et gérez les clés utilisées par vos serveurs pour appeler la passerelle DigitGateway.
+            Générez et gérez les clés utilisées par vos serveurs pour appeler la passerelle DigitaGateway.
           </p>
         </div>
         <button

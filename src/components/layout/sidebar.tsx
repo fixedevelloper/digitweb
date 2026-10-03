@@ -17,13 +17,18 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         { label: "Vue d'ensemble", href: "/dashboard", icon: "📊" },
         { label: "Flux & Transactions", href: "/dashboard/transactions", icon: "💸" },
         { label: "Utilisateurs", href: "/dashboard/users", icon: "👤" },
+        { label: "Transferts manuels", href: "/dashboard/manual-transfers", icon: "🧾" },
         { label: "Gestion Marchands", href: "/dashboard/merchants", icon: "🏢" },
+        { label: "Agents", href: "/dashboard/agents", icon: "🧑‍💼" },
     ];
 
     const technicalMenuItems = [
         { label: "Moniteur des Wallets", href: "/dashboard/wallets", icon: "🏦" },
         { label: "Routage Opérateurs", href: "/dashboard/operators", icon: "📶" },
         { label: "Corridors Pays", href: "/dashboard/countries", icon: "🌍" },
+        { label: "Services par pays", href: "/dashboard/country-services", icon: "🏛️" },
+        { label: "Providers", href: "/dashboard/providers", icon: "🔌" },
+        { label: "Frais de transfert", href: "/dashboard/fee-rules", icon: "🧮" },
         { label: "Taux de Change", href: "/dashboard/exchange-rates", icon: "💱" },
     ];
 
@@ -82,7 +87,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                     DG
                 </div>
                 <span className="text-base font-bold tracking-tight text-white">
-                    Digit<span className="text-blue-500">Gateway</span> <span className="text-[10px] bg-blue-500/10 text-blue-400 px-1.5 py-0.5 rounded ml-1 uppercase font-semibold">Admin</span>
+                    Digita<span className="text-blue-500">Gateway</span> <span className="text-[10px] bg-blue-500/10 text-blue-400 px-1.5 py-0.5 rounded ml-1 uppercase font-semibold">Admin</span>
                 </span>
                 <button
                     onClick={onClose}

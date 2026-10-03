@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useTransactions } from '../hooks/use-transactions';
 import { transactionApi } from '../services/transaction-api';
+import { StatusBadge } from '@/features/transfers/components/status-badge';
 
 export function TransactionTable() {
   const [page, setPage] = useState(1);
@@ -106,7 +107,7 @@ export function TransactionTable() {
         )}
 
         {isError && (
-            <div className="text-center py-8 text-sm text-red-500 font-medium">⚠️ Échec de connexion avec l&apos;API Digit-Gateway.</div>
+            <div className="text-center py-8 text-sm text-red-500 font-medium">⚠️ Échec de connexion avec l&apos;API Digita-Gateway.</div>
         )}
 
         {!isLoading && !isError && (
@@ -126,7 +127,7 @@ export function TransactionTable() {
             </thead>
             <tbody className="text-xs divide-y divide-slate-100 text-slate-700 font-medium">
             {transactions?.map((tx) => {
-              // Calcul de la marge nette générée par Digit-Gateway pour l'administrateur
+              // Calcul de la marge nette générée par Digita-Gateway pour l'administrateur
               const netMargin = Number(tx.fees) - Number(tx.gateway_fees);
 
               return (
@@ -178,14 +179,10 @@ export function TransactionTable() {
 
                     {/* États Système */}
                     <td className="px-6 py-4">
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ${
-                        tx.status === 'success' ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/10' :
-                            tx.status === 'processing' ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-600/10' :
-                                tx.status === 'pending' ? 'bg-amber-50 text-amber-700 ring-1 ring-amber-600/10' :
-                                    'bg-red-50 text-red-700 ring-1 ring-red-600/10'
-                    }`}>
-                      {tx.status}
-                    </span>
+                    <StatusBadge status={tx.status} />
+                    {tx.processing_mode === 'MANUAL' && (
+                      <span className="ml-1.5 text-[10px] font-semibold text-orange-600">Manuel</span>
+                    )}
                       {tx.failure_code && (
                           <div className="text-[10px] text-red-500 mt-1 max-w-[150px] truncate" title={tx.failure_reason || ''}>
                             Err: {tx.failure_code}

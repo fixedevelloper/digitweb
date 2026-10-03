@@ -22,7 +22,7 @@ export default function PortalOverviewPage() {
       <div>
         <h1 className="text-3xl font-black tracking-tight text-slate-900 uppercase">Vue d&apos;ensemble</h1>
         <p className="text-sm text-slate-500 mt-0.5">
-          Bienvenue{merchant ? `, ${merchant.name}` : ''}. Gérez votre intégration à la passerelle DigitGateway.
+          Bienvenue{merchant ? `, ${merchant.name}` : ''}. Gérez votre intégration à la passerelle DigitaGateway.
         </p>
       </div>
 

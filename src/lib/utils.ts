@@ -24,7 +24,7 @@ export function getErrorMessage(error: unknown): string {
  * URL de la documentation OpenAPI (Scramble) servie par l'API Laravel.
  *
  * Si NEXT_PUBLIC_DOCS_URL est défini (doc déployée sur un sous-domaine dédié,
- * ex: https://docs.digitgateway.com — cf. DOCS_DOMAIN côté digit-api), on
+ * ex: https://docs.digitagateway.com — cf. DOCS_DOMAIN côté digit-api), on
  * l'utilise tel quel. Sinon on dérive /docs/api de NEXT_PUBLIC_API_URL, comme
  * en local où la doc reste sur le même domaine que l'API.
  */
