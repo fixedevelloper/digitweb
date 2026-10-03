@@ -14,10 +14,11 @@ const STATUS_LABELS: Record<CountryServiceStatus, string> = { ACTIVE: 'Actif', M
 
 const toNum = (v: string) => (v === '' ? null : Number(v));
 
-function ServiceRow({ row, providers, onSave, saving }: {
+function ServiceRow({ row, providers, onSave, onDelete, saving }: {
   row: CountryService;
   providers: Provider[];
   onSave: (id: number, data: Record<string, unknown>) => void;
+  onDelete: (row: CountryService) => void;
   saving: boolean;
 }) {
   const [f, setF] = useState({
@@ -57,6 +58,10 @@ function ServiceRow({ row, providers, onSave, saving }: {
           min_amount: toNum(String(f.min_amount)), max_amount: toNum(String(f.max_amount)),
           daily_limit: toNum(String(f.daily_limit)), monthly_limit: toNum(String(f.monthly_limit)),
         })}>Enregistrer</Button>
+        <button type="button" disabled={saving} onClick={() => onDelete(row)}
+          className="ml-2 text-xs px-3 py-1.5 rounded-lg border border-red-200 text-red-600 font-semibold hover:bg-red-50 disabled:opacity-50">
+          Supprimer
+        </button>
       </td>
     </tr>
   );
@@ -107,7 +112,7 @@ function BankFieldsEditor() {
 }
 
 export default function CountryServicesPage() {
-  const { data: rows, isLoading, create, update } = useCountryServices();
+  const { data: rows, isLoading, create, update, remove } = useCountryServices();
   const { data: providers = [] } = useProviders();
   const { data: countries } = useCountries();
   const [form, setForm] = useState({ country_id: '', service: 'BANK_TRANSFER', status: 'MANUAL' });
@@ -115,6 +120,11 @@ export default function CountryServicesPage() {
 
   const save = (id: number, data: Record<string, unknown>) =>
     update.mutate({ id, data }, { onSuccess: () => setFlash('Configuration enregistrée.') });
+
+  const del = (row: CountryService) => {
+    if (!window.confirm(`Supprimer ${SERVICE_LABELS[row.service]} pour ${row.country?.name} ?`)) return;
+    remove.mutate(row.id, { onSuccess: () => setFlash('Service supprimé.') });
+  };
 
   return (
     <div className="space-y-6">
@@ -129,6 +139,8 @@ export default function CountryServicesPage() {
       {flash && <div className="p-3 rounded-xl bg-emerald-50 text-xs font-medium text-emerald-800">{flash}</div>}
       {update.isError && <div className="p-3 rounded-xl bg-red-50 text-xs font-medium text-red-700">{getErrorMessage(update.error)}</div>}
 
+      {remove.isError && <div className="p-3 rounded-xl bg-red-50 text-xs font-medium text-red-700">{getErrorMessage(remove.error)}</div>}
+
       <div className="bg-white rounded-2xl border border-slate-200/80 overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-xs uppercase text-slate-500">
@@ -138,7 +150,7 @@ export default function CountryServicesPage() {
             {isLoading && <tr><td className="px-4 py-4 text-slate-400" colSpan={4}>Chargement…</td></tr>}
             {rows?.length === 0 && <tr><td className="px-4 py-4 text-slate-400" colSpan={4}>Aucun service configuré.</td></tr>}
             {rows?.map((r) => (
-              <ServiceRow key={`${r.id}-${r.status}-${r.provider_id}`} row={r} providers={providers} onSave={save} saving={update.isPending} />
+              <ServiceRow key={`${r.id}-${r.status}-${r.provider_id}`} row={r} providers={providers} onSave={save} onDelete={del} saving={update.isPending || remove.isPending} />
             ))}
           </tbody>
         </table>

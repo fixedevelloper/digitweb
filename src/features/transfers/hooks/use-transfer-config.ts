@@ -6,7 +6,7 @@ import {
   Agent, CountryService, FeeRule, ManualTransfer, Provider, ResourcePage,
 } from '../types';
 
-/** Lecture + création + mise à jour d'une ressource admin, avec rafraîchissement du cache. */
+/** Lecture + création + mise à jour + suppression d'une ressource admin, avec rafraîchissement du cache. */
 function useAdminResource<T extends { id: number }>(key: string, path: string) {
   const queryClient = useQueryClient();
   const invalidate = () => queryClient.invalidateQueries({ queryKey: [key] });
@@ -25,7 +25,12 @@ function useAdminResource<T extends { id: number }>(key: string, path: string) {
     onSuccess: invalidate,
   });
 
-  return { ...list, create, update };
+  const remove = useMutation({
+    mutationFn: async (id: number) => (await apiClient.delete(`${path}/${id}`)).data,
+    onSuccess: invalidate,
+  });
+
+  return { ...list, create, update, remove };
 }
 
 export const useProviders = () => useAdminResource<Provider>('admin-providers', '/admin/providers');
