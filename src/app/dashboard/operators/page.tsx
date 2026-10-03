@@ -5,7 +5,8 @@ import { useOperators } from '@/features/operators/hooks/use-operators';
 import { useUpdateOperator } from '@/features/operators/hooks/use-update-operator';
 import { useCountries } from '@/features/countries/hooks/use-countries'; // Récupérer la liste pour le Select du pays
 import { Button } from '@/components/ui/button';
-import { CURRENCIES, WALLET_CURRENCY } from '@/features/exchange-rates/currencies';
+import { useCurrencyOptions } from '@/features/currencies/hooks/use-currencies';
+import { WALLET_CURRENCY } from '@/features/exchange-rates/currencies';
 
 // Message d'erreur renvoyé par Laravel (422 de validation, ex: code déjà utilisé dans ce pays et cette devise)
 const apiErrorMessage = (error: unknown): string => {
@@ -16,6 +17,7 @@ const apiErrorMessage = (error: unknown): string => {
 
 export default function OperatorsPage() {
     const { data: operators, isLoading, error } = useOperators();
+    const currencies = useCurrencyOptions();
     const { data: countries } = useCountries();
     const updateOperatorMutation = useUpdateOperator();
 
@@ -185,8 +187,8 @@ export default function OperatorsPage() {
                 onChange={e => setFormData({ ...formData, currency: e.target.value })}
                 className="w-full px-3 py-2 border border-slate-200 bg-white rounded-lg focus:outline-none focus:border-blue-500 text-xs font-semibold"
             >
-                {CURRENCIES.map((currency) => (
-                    <option key={currency} value={currency}>{currency}</option>
+                {currencies.map((currency) => (
+                    <option key={currency.code} value={currency.code}>{currency.code} — {currency.name} ({currency.symbol})</option>
                 ))}
             </select>
             {formData.currency !== WALLET_CURRENCY && (

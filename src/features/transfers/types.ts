@@ -20,6 +20,7 @@ export const SERVICE_LABELS: Record<TransferService, string> = {
 export const BANK_FIELDS = [
   'full_name', 'phone', 'email', 'bank_name', 'bank_code', 'branch_code',
   'account_number', 'iban', 'swift_bic', 'address', 'city',
+  'reference', 'pix', 'bre_b', 'spei',
 ] as const;
 
 export interface Provider {

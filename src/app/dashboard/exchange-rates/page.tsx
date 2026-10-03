@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { CURRENCIES, WALLET_CURRENCY } from '@/features/exchange-rates/currencies';
+import { WALLET_CURRENCY } from '@/features/exchange-rates/currencies';
+import { useCurrencyOptions } from '@/features/currencies/hooks/use-currencies';
 import { useExchangeRates, useSaveExchangeRate } from '@/features/exchange-rates/hooks/use-exchange-rates';
 
 const formatRate = (value: number) => value.toLocaleString('fr-FR', { maximumFractionDigits: 8 });
@@ -12,6 +13,8 @@ const formatDate = (value: string) => new Date(value).toLocaleString('fr-FR', { 
 export default function ExchangeRatesPage() {
     const { data, isLoading, error } = useExchangeRates();
     const saveMutation = useSaveExchangeRate();
+    const currencies = useCurrencyOptions();
+    const symbolOf = (code: string) => currencies.find((c) => c.code === code)?.symbol ?? code;
 
     const [form, setForm] = useState({ base_currency: 'USD', quote_currency: WALLET_CURRENCY, rate: '' });
 
@@ -66,7 +69,7 @@ export default function ExchangeRatesPage() {
                                     {current.base_currency} / {current.quote_currency}
                                 </div>
                                 <div className="text-2xl font-black text-slate-900">
-                                    1 {current.base_currency} = {formatRate(current.rate)} {current.quote_currency}
+                                    1 {current.base_currency} = {formatRate(current.rate)} {symbolOf(current.quote_currency)}
                                 </div>
                                 <div className="text-xs text-slate-500 font-semibold">
                                     1 {current.quote_currency} = {formatRate(1 / current.rate)} {current.base_currency}
@@ -104,8 +107,8 @@ export default function ExchangeRatesPage() {
                                 onChange={e => setForm({ ...form, base_currency: e.target.value })}
                                 className="w-full px-3 py-2 border border-slate-200 bg-white rounded-lg focus:outline-none focus:border-blue-500 text-xs font-semibold"
                             >
-                                {CURRENCIES.map((currency) => (
-                                    <option key={currency} value={currency}>{currency}</option>
+                                {currencies.map((currency) => (
+                                    <option key={currency.code} value={currency.code}>{currency.code} — {currency.name} ({currency.symbol})</option>
                                 ))}
                             </select>
                         </div>
@@ -125,8 +128,8 @@ export default function ExchangeRatesPage() {
                                 onChange={e => setForm({ ...form, quote_currency: e.target.value })}
                                 className="w-full px-3 py-2 border border-slate-200 bg-white rounded-lg focus:outline-none focus:border-blue-500 text-xs font-semibold"
                             >
-                                {CURRENCIES.map((currency) => (
-                                    <option key={currency} value={currency}>{currency}</option>
+                                {currencies.map((currency) => (
+                                    <option key={currency.code} value={currency.code}>{currency.code} — {currency.name} ({currency.symbol})</option>
                                 ))}
                             </select>
                         </div>

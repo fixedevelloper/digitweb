@@ -30,6 +30,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         { label: "Providers", href: "/dashboard/providers", icon: "🔌" },
         { label: "Frais de transfert", href: "/dashboard/fee-rules", icon: "🧮" },
         { label: "Taux de Change", href: "/dashboard/exchange-rates", icon: "💱" },
+        { label: "Devises", href: "/dashboard/currencies", icon: "💰" },
     ];
 
     const handleLogout = async () => {

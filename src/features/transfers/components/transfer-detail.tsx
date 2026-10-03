@@ -6,6 +6,7 @@ const FIELD_LABELS: Record<string, string> = {
   full_name: 'Nom', phone: 'Téléphone', email: 'Email', bank_name: 'Banque', bank_code: 'Code banque',
   branch_code: 'Code agence', account_number: 'N° de compte', iban: 'IBAN', swift_bic: 'SWIFT/BIC',
   address: 'Adresse', city: 'Ville', operator: 'Opérateur',
+  reference: 'Référence', pix: 'PIX', bre_b: 'Bre-B', spei: 'SPEI (CLABE)',
 };
 
 /** Détail d'un transfert : montants, bénéficiaire, preuves et historique d'audit. */
