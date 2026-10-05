@@ -46,7 +46,8 @@ function KycFile({ id, index, role, mime }: { id: number; index: number; role: s
         // eslint-disable-next-line @next/next/no-img-element
         <a href={url} target="_blank" rel="noreferrer"><img src={url} alt={role} className="max-h-48 rounded-lg border border-slate-200" /></a>
       )}
-      {url && !mime.startsWith('image/') && <a href={url} target="_blank" rel="noreferrer" className="text-blue-600 font-semibold">Ouvrir le document</a>}
+      {/* PDF : téléchargé plutôt qu'affiché (le lecteur PDF du navigateur est bloqué par `object-src 'none'` de la CSP). */}
+      {url && !mime.startsWith('image/') && <a href={url} download={`kyc-${id}-${role}.pdf`} className="text-blue-600 font-semibold">Télécharger le document</a>}
     </div>
   );
 }
