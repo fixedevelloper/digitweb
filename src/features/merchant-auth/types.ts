@@ -6,6 +6,7 @@ export interface Merchant {
   phone: string;
   environment: 'sandbox' | 'production';
   status: boolean;
+  two_factor_enabled?: boolean;
   created_at: string;
 }
 
@@ -24,9 +25,9 @@ export interface LoginInput {
 }
 
 export interface AuthResponse {
-  status: string;
+  status: string; // 'success' | 'two_factor_required'
+  challenge?: string; // 2FA activée : à échanger via POST /merchants/2fa
   message: string;
-  token: string;
   merchant: Merchant;
 }
 

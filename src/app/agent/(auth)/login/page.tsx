@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { useAgentLogin } from '@/features/agent/hooks/use-agent-auth';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/utils';
@@ -9,13 +8,8 @@ import { getErrorMessage } from '@/lib/utils';
 const input = 'w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10';
 
 export default function AgentLoginPage() {
-  const router = useRouter();
   const [form, setForm] = useState({ phone: '', password: '' });
   const login = useAgentLogin();
-
-  useEffect(() => {
-    if (localStorage.getItem('agent_auth_token')) router.replace('/agent/dashboard');
-  }, [router]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">

@@ -1,24 +1,16 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { agentLogout } from '@/features/agent/hooks/use-agent-auth';
 
 export default function AgentDashboardLayout({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
-  const [name, setName] = useState<string | null>(null);
+  // L'accès est contrôlé côté serveur par src/proxy.ts (cookie de session) ; ici, simple affichage du nom.
+  const [name, setName] = useState('Agent');
 
   useEffect(() => {
-    if (!localStorage.getItem('agent_auth_token')) {
-      router.replace('/agent/login');
-      return;
-    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setName(localStorage.getItem('agent_name') ?? 'Agent');
-  }, [router]);
-
-  if (name === null) {
-    return <div className="min-h-screen flex items-center justify-center text-sm font-semibold text-slate-400">Chargement de la console agent...</div>;
-  }
+  }, []);
 
   return (
     <div className="min-h-screen bg-slate-50">

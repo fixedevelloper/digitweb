@@ -1,4 +1,5 @@
 // @/features/wallets/components/adjust-wallet-modal.tsx
+import { getErrorMessage } from '@/lib/utils';
 import { useState } from 'react';
 import { useAdjustWallet } from '../hooks/use-adjust-wallet'; // Import de votre hook
 
@@ -38,12 +39,14 @@ export function AdjustWalletModal({ walletId, userPhone, onClose }: AdjustWallet
                 reason: reason.trim(),
             },
             {
-                onSuccess: () => {
+                onSuccess: (data: { status?: string; message?: string }) => {
+                    // Demande en attente de validation par un autre superadmin : on le dit clairement.
+                    if (data?.status === 'pending_approval') alert(data.message);
                     // Ferme proprement la modale lors de la réussite de la mutation
                     onClose();
                 },
-                onError: (error: any) => {
-                    setErrorMessage(error.message || "Une erreur est survenue lors de l'ajustement.");
+                onError: (error: unknown) => {
+                    setErrorMessage(getErrorMessage(error));
                 }
             }
         );

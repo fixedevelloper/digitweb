@@ -18,12 +18,17 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         { label: "Flux & Transactions", href: "/dashboard/transactions", icon: "💸" },
         { label: "Utilisateurs", href: "/dashboard/users", icon: "👤" },
         { label: "Transferts manuels", href: "/dashboard/manual-transfers", icon: "🧾" },
+        { label: "Rapprochement", href: "/dashboard/reconciliation", icon: "⚖️" },
+        { label: "Vérification KYC", href: "/dashboard/kyc", icon: "🪪" },
         { label: "Gestion Marchands", href: "/dashboard/merchants", icon: "🏢" },
         { label: "Agents", href: "/dashboard/agents", icon: "🧑‍💼" },
     ];
 
     const technicalMenuItems = [
         { label: "Moniteur des Wallets", href: "/dashboard/wallets", icon: "🏦" },
+        { label: "Validation ajustements", href: "/dashboard/adjustments", icon: "✅" },
+        { label: "Supervision", href: "/dashboard/monitoring", icon: "📡" },
+        { label: "Sécurité (2FA)", href: "/dashboard/security", icon: "🔐" },
         { label: "Routage Opérateurs", href: "/dashboard/operators", icon: "📶" },
         { label: "Corridors Pays", href: "/dashboard/countries", icon: "🌍" },
         { label: "Services par pays", href: "/dashboard/country-services", icon: "🏛️" },
@@ -35,14 +40,13 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
     const handleLogout = async () => {
         try {
-            // Récupère le token stocké localement avant de déconnecter
-            const token = localStorage.getItem('token') || undefined;
-            await authApi.logout(token);
+            // Révoque le jeton côté API et efface le cookie de session (HttpOnly).
+            await authApi.logout();
         } catch (error) {
             console.error("Erreur lors de la déconnexion de l'API:", error);
         } finally {
-            // Nettoyage local et redirection vers l'écran de login
-            localStorage.removeItem('token');
+            localStorage.removeItem('admin_name');
+            localStorage.removeItem('admin_phone');
             router.push('/login');
         }
     };

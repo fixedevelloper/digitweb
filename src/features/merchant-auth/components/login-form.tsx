@@ -2,7 +2,9 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useMerchantLogin } from '../hooks/use-merchant-login';
+import { startMerchantSession, useMerchantLogin } from '../hooks/use-merchant-login';
+import { TwoFactorStep } from '@/features/security/components/two-factor-step';
+import { AuthResponse } from '../types';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/utils';
 
@@ -10,6 +12,7 @@ export function MerchantLoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const loginMutation = useMerchantLogin();
+  const challenge = loginMutation.data?.status === 'two_factor_required' ? loginMutation.data.challenge : undefined;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,6 +31,14 @@ export function MerchantLoginForm() {
         <p className="text-sm text-slate-500 mt-1">Connectez-vous pour gérer vos clés API</p>
       </div>
 
+      {challenge ? (
+        <TwoFactorStep
+          area="merchant"
+          challenge={challenge}
+          onSuccess={(data) => startMerchantSession(data as AuthResponse)}
+          onCancel={() => loginMutation.reset()}
+        />
+      ) : (
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="space-y-1.5">
           <label className="text-xs font-semibold uppercase tracking-wider text-slate-600">Email</label>
@@ -79,6 +90,7 @@ export function MerchantLoginForm() {
           </Link>
         </p>
       </form>
+      )}
     </div>
   );
 }

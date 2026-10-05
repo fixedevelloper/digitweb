@@ -4,7 +4,9 @@ export interface LoginCredentials {
 }
 
 export interface AuthResponse {
-  token: string;
+  status?: 'success' | 'two_factor_required';
+  /** Présent quand la 2FA est activée : à échanger contre un code (POST /admin/auth/2fa). */
+  challenge?: string;
   user: {
     id: number;
     name: string;

@@ -18,6 +18,8 @@ export function PortalSidebar({ isOpen, onClose }: PortalSidebarProps) {
     { label: "Vue d'ensemble", href: '/portal/dashboard', icon: '📊' },
     { label: 'Wallet & transactions', href: '/portal/dashboard/transactions', icon: '💳' },
     { label: 'Clés API', href: '/portal/dashboard/api-keys', icon: '🔑' },
+    { label: 'Webhooks', href: '/portal/dashboard/webhooks', icon: '🔔' },
+    { label: 'Sécurité', href: '/portal/dashboard/security', icon: '🔐' },
   ];
 
   const renderLink = (item: { label: string; href: string; icon: string }) => {

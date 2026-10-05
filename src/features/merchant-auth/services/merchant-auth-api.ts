@@ -2,29 +2,27 @@ import axios from 'axios';
 import { merchantApiClient } from '@/lib/merchant-api-client';
 import { AuthResponse, LoginInput, ProfileResponse, RegisterInput } from '../types';
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
-
 export const merchantAuthApi = {
   /**
-   * Inscription et connexion : instance Axios isolée (sans intercepteur) pour
-   * éviter d'envoyer un éventuel jeton périmé pendant l'authentification.
+   * Inscription et connexion : via le relais Next.js, qui pose le cookie de session HttpOnly
+   * (le jeton n'est jamais renvoyé au navigateur).
    */
   register: async (data: RegisterInput): Promise<AuthResponse> => {
-    const response = await axios.post<AuthResponse>(`${BASE_URL}/merchants/register`, data, {
+    const response = await axios.post<AuthResponse>('/bff/auth/merchant/register', data, {
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
     });
     return response.data;
   },
 
   login: async (data: LoginInput): Promise<AuthResponse> => {
-    const response = await axios.post<AuthResponse>(`${BASE_URL}/merchants/login`, data, {
+    const response = await axios.post<AuthResponse>('/bff/auth/merchant/login', data, {
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
     });
     return response.data;
   },
 
   logout: async (): Promise<void> => {
-    await merchantApiClient.post('/merchants/logout');
+    await axios.post('/bff/auth/merchant/logout', {}, { headers: { Accept: 'application/json' } });
   },
 
   getProfile: async (): Promise<ProfileResponse> => {

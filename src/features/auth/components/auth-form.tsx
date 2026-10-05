@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { useLogin } from '../hooks/use-login';
+import { startAdminSession, useLogin } from '../hooks/use-login';
+import { TwoFactorStep } from '@/features/security/components/two-factor-step';
+import { AuthResponse } from '../types';
 import { Button } from '@/components/ui/button';
 
 export function AuthForm() {
@@ -9,6 +11,7 @@ export function AuthForm() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const loginMutation = useLogin();
+  const challenge = loginMutation.data?.status === 'two_factor_required' ? loginMutation.data.challenge : undefined;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,6 +31,14 @@ export function AuthForm() {
           <p className="text-sm text-slate-500 mt-1">Connectez-vous avec votre numéro de téléphone</p>
         </div>
 
+        {challenge ? (
+          <TwoFactorStep
+            area="admin"
+            challenge={challenge}
+            onSuccess={(data) => startAdminSession(data as AuthResponse)}
+            onCancel={() => loginMutation.reset()}
+          />
+        ) : (
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Champ Téléphone */}
           <div className="space-y-1.5">
@@ -109,6 +120,7 @@ export function AuthForm() {
             {loginMutation.isPending ? 'Vérification...' : 'Ouvrir ma session'}
           </Button>
         </form>
+        )}
       </div>
   );
 }
