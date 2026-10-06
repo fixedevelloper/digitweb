@@ -3,12 +3,14 @@
 import { useState } from 'react';
 import { useMerchants } from '@/features/merchants/hooks/use-merchants';
 import { MerchantKybPanel } from '@/features/merchants/components/merchant-kyb-panel';
+import { MerchantTransactionsPanel } from '@/features/merchants/components/merchant-transactions-panel';
 import { KYB_STATUS_LABELS } from '@/features/kyb/types';
 import { getErrorMessage } from '@/lib/utils';
 
 export default function MerchantsPage() {
     const { data: merchants, isLoading, error, updateMerchant, isUpdating, updateError, resetUpdateError } = useMerchants();
     const [kybMerchantId, setKybMerchantId] = useState<number | null>(null);
+    const [txMerchant, setTxMerchant] = useState<{ id: number; company: string } | null>(null);
 
     if (isLoading) {
         return <div className="p-6 text-sm font-semibold text-slate-500 animate-pulse">Chargement du registre des marchands agrégés...</div>;
@@ -136,7 +138,13 @@ export default function MerchantsPage() {
                                     </td>
 
                                     {/* Actionneurs */}
-                                    <td className="py-4 px-5 text-right">
+                                    <td className="py-4 px-5 text-right whitespace-nowrap">
+                                        <button
+                                            onClick={() => setTxMerchant({ id: merchant.id, company: merchant.company_name })}
+                                            className="mr-2 text-[11px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all"
+                                        >
+                                            📄 Transactions
+                                        </button>
                                         <button
                                             onClick={() => handleToggleStatus(merchant.id, merchant.status)}
                                             disabled={isUpdating}
@@ -163,6 +171,7 @@ export default function MerchantsPage() {
                 )}
             </div>
 
+            {txMerchant && <MerchantTransactionsPanel merchantId={txMerchant.id} companyName={txMerchant.company} onClose={() => setTxMerchant(null)} />}
             {kybMerchantId !== null && <MerchantKybPanel merchantId={kybMerchantId} onClose={() => setKybMerchantId(null)} />}
         </div>
     );
