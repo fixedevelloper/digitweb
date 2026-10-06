@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
 import { getErrorMessage } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { DOC_STATUS_LABELS, KYB_STATUS_LABELS, KybOverview, saveBlob } from '@/features/kyb/types';
+import { DOC_STATUS_LABELS, KYB_STATUS_LABELS, KybChecklistItem, KybOverview, KybProfile, saveBlob } from '@/features/kyb/types';
 
 interface AdminKyb extends KybOverview {
   merchant: { id: number; name: string; company_name: string; email: string; phone: string; environment: string };
@@ -14,8 +14,88 @@ interface AdminKyb extends KybOverview {
 
 const ACTION_LABELS: Record<string, string> = {
   profile_updated: 'Informations mises à jour', document_uploaded: 'Pièce déposée', document_replaced: 'Pièce remplacée', submitted: 'Dossier soumis',
-  document_viewed: 'Pièce consultée', document_approved: 'Pièce validée', document_rejected: 'Pièce refusée', dossier_approved: 'Dossier approuvé', dossier_rejected: 'Dossier refusé',
+  document_viewed: 'Pièce consultée', document_uploaded_by_team: 'Pièce déposée par l\'équipe', document_replaced_by_team: 'Pièce remplacée par l\'équipe', profile_updated_by_team: 'Informations saisies par l\'équipe', document_approved: 'Pièce validée', document_rejected: 'Pièce refusée', dossier_approved: 'Dossier approuvé', dossier_rejected: 'Dossier refusé',
 };
+
+const fieldClass = 'w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-blue-500';
+
+/** Dépôt d'une pièce par l'équipe pour le compte du marchand : l'origine est obligatoire (journal d'audit). */
+function TeamUpload({ merchantId, item, onDone }: { merchantId: number; item: KybChecklistItem; onDone: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [expiresAt, setExpiresAt] = useState('');
+  const [comment, setComment] = useState('');
+
+  const upload = useMutation({
+    mutationFn: async () => {
+      const form = new FormData();
+      form.append('type', item.type);
+      form.append('file', file as File);
+      form.append('comment', comment.trim());
+      if (expiresAt) form.append('expires_at', expiresAt);
+      return (await apiClient.post(`/admin/merchants/${merchantId}/kyb/documents`, form, { headers: { 'Content-Type': 'multipart/form-data' } })).data;
+    },
+    onSuccess: () => { setOpen(false); setFile(null); setExpiresAt(''); setComment(''); onDone(); },
+  });
+
+  if (!open) {
+    return <button type="button" onClick={() => setOpen(true)} className="text-[11px] font-bold text-blue-600 hover:text-blue-500">{item.document ? '⇪ Remplacer pour le marchand' : '⇪ Déposer pour le marchand'}</button>;
+  }
+
+  return (
+    <div className="space-y-2 bg-blue-50/60 border border-blue-100 rounded-lg p-3">
+      <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="text-xs" />
+      {item.expires && <input type="date" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)} className={fieldClass} title="Date de fin de validité de la pièce" />}
+      <input value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Origine de la pièce (ex : reçue par e-mail le 03/10) — obligatoire" className={fieldClass} />
+      {upload.isError && <p className="text-xs font-medium text-red-600">{getErrorMessage(upload.error)}</p>}
+      <div className="flex gap-2">
+        <Button className="text-xs px-3 py-1" disabled={!file || comment.trim().length < 3 || upload.isPending} onClick={() => upload.mutate()}>Déposer</Button>
+        <button type="button" className="text-xs text-slate-500" onClick={() => setOpen(false)}>Annuler</button>
+      </div>
+      <p className="text-[10px] text-slate-500">La pièce reste « en attente » : elle doit ensuite être validée. Le marchand en est informé.</p>
+    </div>
+  );
+}
+
+/** Saisie des informations d'entreprise par l'équipe pour le compte du marchand. */
+function TeamProfileForm({ merchantId, profile, onDone }: { merchantId: number; profile: KybProfile | null; onDone: () => void }) {
+  const initial = (k: keyof KybProfile) => profile?.[k] ?? '';
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState<Record<keyof KybProfile, string>>({
+    registration_number: initial('registration_number'), tax_id: initial('tax_id'), country: initial('country'),
+    address: initial('address'), business_description: initial('business_description'), expected_monthly_volume: initial('expected_monthly_volume'),
+  });
+  const [comment, setComment] = useState('');
+  const set = (k: keyof KybProfile) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setForm({ ...form, [k]: e.target.value });
+
+  const save = useMutation({
+    mutationFn: async () => (await apiClient.put(`/admin/merchants/${merchantId}/kyb/profile`, { ...form, comment: comment.trim() })).data,
+    onSuccess: () => { setOpen(false); setComment(''); onDone(); },
+  });
+
+  if (!open) {
+    return <button type="button" onClick={() => setOpen(true)} className="text-[11px] font-bold text-blue-600 hover:text-blue-500">✎ {profile ? 'Modifier' : 'Renseigner'} pour le marchand</button>;
+  }
+
+  return (
+    <form className="space-y-2 mt-2" onSubmit={(e) => { e.preventDefault(); save.mutate(); }}>
+      <div className="grid grid-cols-2 gap-2">
+        <input className={fieldClass} placeholder="N° de registre" value={form.registration_number} onChange={set('registration_number')} required />
+        <input className={fieldClass} placeholder="Identifiant fiscal" value={form.tax_id} onChange={set('tax_id')} required />
+        <input className={fieldClass} placeholder="Pays d'immatriculation" value={form.country} onChange={set('country')} required />
+        <input className={fieldClass} type="number" min="0" placeholder="Volume mensuel attendu" value={form.expected_monthly_volume} onChange={set('expected_monthly_volume')} required />
+      </div>
+      <input className={fieldClass} placeholder="Adresse du siège" value={form.address} onChange={set('address')} required />
+      <textarea className={fieldClass} rows={2} placeholder="Activité" value={form.business_description} onChange={set('business_description')} required />
+      <input className={fieldClass} placeholder="Origine des informations (ex : dossier papier reçu le 03/10) — obligatoire" value={comment} onChange={(e) => setComment(e.target.value)} required minLength={3} />
+      {save.isError && <p className="text-xs font-medium text-red-600">{getErrorMessage(save.error)}</p>}
+      <div className="flex gap-2">
+        <Button type="submit" className="text-xs px-3 py-1" disabled={save.isPending}>Enregistrer</Button>
+        <button type="button" className="text-xs text-slate-500" onClick={() => setOpen(false)}>Annuler</button>
+      </div>
+    </form>
+  );
+}
 
 /** Examen du dossier de vérification d'un marchand : pièces, décisions, historique. */
 export function MerchantKybPanel({ merchantId, onClose }: { merchantId: number; onClose: () => void }) {
@@ -35,6 +115,7 @@ export function MerchantKybPanel({ merchantId, onClose }: { merchantId: number; 
     queryClient.invalidateQueries({ queryKey: key });
     queryClient.invalidateQueries({ queryKey: ['admin-merchants'] });
   };
+  const refresh = () => { queryClient.invalidateQueries({ queryKey: key }); queryClient.invalidateQueries({ queryKey: ['admin-merchants'] }); };
   const base = `/admin/merchants/${merchantId}/kyb`;
   const approveDoc = useMutation({ mutationFn: async (id: number) => apiClient.post(`${base}/documents/${id}/approve`), onSuccess: done });
   const rejectDoc = useMutation({ mutationFn: async (id: number) => apiClient.post(`${base}/documents/${id}/reject`, { reason }), onSuccess: done });
@@ -90,6 +171,7 @@ export function MerchantKybPanel({ merchantId, onClose }: { merchantId: number; 
                   <div><b>Activité :</b> {data.profile.business_description}</div>
                 </>
               ) : <p className="text-slate-400">Informations non renseignées.</p>}
+              {reviewable && <TeamProfileForm key={JSON.stringify(data.profile)} merchantId={merchantId} profile={data.profile} onDone={refresh} />}
             </section>
 
             <section className="border border-slate-200 rounded-xl divide-y divide-slate-100">
@@ -124,6 +206,7 @@ export function MerchantKybPanel({ merchantId, onClose }: { merchantId: number; 
                         )}
                       </>
                     )}
+                    {reviewable && <TeamUpload merchantId={merchantId} item={item} onDone={refresh} />}
                   </div>
                 );
               })}
