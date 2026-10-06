@@ -57,9 +57,25 @@ export function useCountries() {
         },
     });
 
+    // Suppression : refusée par l'API (409) tant que le pays sert (opérateurs, frais, transactions...).
+    const deletion = useMutation({
+        mutationFn: async (id: number) => (await apiClient.delete(`/admin/countries/${id}`)).data,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['admin-countries'] });
+            queryClient.invalidateQueries({ queryKey: ['admin-operators'] });
+        },
+    });
+
     return {
         ...query,
         updateCountry: mutation.mutate,
-        isUpdating: mutation.isPending
+        isUpdating: mutation.isPending,
+        // `error` est déjà l'erreur de chargement de la liste : on nomme les autres explicitement.
+        saveError: mutation.error,
+        resetSaveError: mutation.reset,
+        deleteCountry: deletion.mutate,
+        isDeleting: deletion.isPending,
+        deleteError: deletion.error,
+        resetDeleteError: deletion.reset,
     };
 }

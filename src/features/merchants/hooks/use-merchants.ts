@@ -11,6 +11,9 @@ export interface Merchant {
     company_name: string;
     environment: 'sandbox' | 'production';
     status: boolean | string | number;
+    kyb_status?: 'incomplete' | 'in_review' | 'approved' | 'rejected';
+    kyb_grace_until?: string | null;
+    merchant_documents_count?: number;
     wallet?: {
         balance: number | string;
         currency: string;
@@ -42,6 +45,9 @@ export function useMerchants() {
     return {
         ...query,
         updateMerchant: mutation.mutate,
-        isUpdating: mutation.isPending
+        isUpdating: mutation.isPending,
+        // Refus de l'API (ex: passage en production sans dossier approuvé) : à afficher à l'admin.
+        updateError: mutation.error,
+        resetUpdateError: mutation.reset,
     };
 }

@@ -1,9 +1,14 @@
 'use client';
 
+import { useState } from 'react';
 import { useMerchants } from '@/features/merchants/hooks/use-merchants';
+import { MerchantKybPanel } from '@/features/merchants/components/merchant-kyb-panel';
+import { KYB_STATUS_LABELS } from '@/features/kyb/types';
+import { getErrorMessage } from '@/lib/utils';
 
 export default function MerchantsPage() {
-    const { data: merchants, isLoading, error, updateMerchant, isUpdating } = useMerchants();
+    const { data: merchants, isLoading, error, updateMerchant, isUpdating, updateError, resetUpdateError } = useMerchants();
+    const [kybMerchantId, setKybMerchantId] = useState<number | null>(null);
 
     if (isLoading) {
         return <div className="p-6 text-sm font-semibold text-slate-500 animate-pulse">Chargement du registre des marchands agrégés...</div>;
@@ -22,6 +27,7 @@ export default function MerchantsPage() {
     };
 
     const handleToggleEnvironment = (id: number, currentEnv: 'sandbox' | 'production') => {
+        resetUpdateError();
         const nextEnv = currentEnv === 'production' ? 'sandbox' : 'production';
         updateMerchant({
             id,
@@ -42,6 +48,12 @@ export default function MerchantsPage() {
                 </p>
             </div>
 
+            {updateError && (
+                <div className="bg-red-50 border border-red-200 text-red-700 text-xs font-semibold rounded-xl px-4 py-3">
+                    {getErrorMessage(updateError)}
+                </div>
+            )}
+
             {/* Tableau des Marchands */}
             <div className="bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-sm">
                 <div className="overflow-x-auto">
@@ -50,6 +62,7 @@ export default function MerchantsPage() {
                         <tr className="bg-slate-50/75 border-b border-slate-200 text-[10px] font-bold text-slate-400 uppercase tracking-wider font-mono">
                             <th className="py-3 px-5">Entreprise / Contact</th>
                             <th className="py-3 px-5">Environnement</th>
+                            <th className="py-3 px-5">Dossier (KYB)</th>
                             <th className="py-3 px-5 text-right">Balance Actuelle</th>
                             <th className="py-3 px-5 text-center">Réseau d&apos;Accès</th>
                             <th className="py-3 px-5 text-right">Actions</th>
@@ -84,6 +97,27 @@ export default function MerchantsPage() {
                                         >
                                             {merchant.environment === 'production' ? '🚀 Production' : '🧪 Sandbox'}
                                         </button>
+                                    </td>
+
+                                    {/* Dossier de vérification */}
+                                    <td className="py-4 px-5">
+                                        {(() => {
+                                            const kyb = KYB_STATUS_LABELS[merchant.kyb_status ?? 'incomplete'];
+                                            return (
+                                                <div className="space-y-1">
+                                                    <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${kyb.className}`}>{kyb.label}</span>
+                                                    <div className="text-[10px] text-slate-400">{merchant.merchant_documents_count ?? 0} pièce(s)</div>
+                                                    {merchant.environment === 'production' && merchant.kyb_status !== 'approved' && merchant.kyb_grace_until && (
+                                                        new Date(merchant.kyb_grace_until) < new Date()
+                                                            ? <div className="text-[10px] font-bold text-red-600">Délai dépassé le {new Date(merchant.kyb_grace_until).toLocaleDateString()}</div>
+                                                            : <div className="text-[10px] font-semibold text-amber-600">À régulariser avant le {new Date(merchant.kyb_grace_until).toLocaleDateString()}</div>
+                                                    )}
+                                                    <button onClick={() => setKybMerchantId(merchant.id)} className="text-[11px] font-bold text-blue-600 hover:text-blue-500">
+                                                        {merchant.kyb_status === 'in_review' ? 'Examiner →' : 'Voir le dossier →'}
+                                                    </button>
+                                                </div>
+                                            );
+                                        })()}
                                     </td>
 
                                     {/* Solde Financier du Marchand */}
@@ -128,6 +162,8 @@ export default function MerchantsPage() {
                     </div>
                 )}
             </div>
+
+            {kybMerchantId !== null && <MerchantKybPanel merchantId={kybMerchantId} onClose={() => setKybMerchantId(null)} />}
         </div>
     );
 }

@@ -22,6 +22,12 @@ function CurrencyRow({ row, onSave, onDelete, busy }: {
       <td className="px-4 py-3"><input className={input} value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></td>
       <td className="px-4 py-3 w-32"><input className={input} value={f.symbol} maxLength={10} onChange={(e) => setF({ ...f, symbol: e.target.value })} /></td>
       <td className="px-4 py-3 text-right whitespace-nowrap">
+        {dirty && (
+          <button type="button" disabled={busy} onClick={() => setF({ name: row.name, symbol: row.symbol })}
+            className="mr-2 text-xs px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 disabled:opacity-50">
+            Annuler
+          </button>
+        )}
         <Button className="text-xs px-3 py-1.5" disabled={busy || !dirty || !f.name || !f.symbol} onClick={() => onSave({ id: row.id, ...f })}>Enregistrer</Button>
         <button type="button" disabled={busy} onClick={() => onDelete(row)}
           className="ml-2 text-xs px-3 py-1.5 rounded-lg border border-red-200 text-red-600 font-semibold hover:bg-red-50 disabled:opacity-50">
@@ -40,7 +46,8 @@ export default function CurrenciesPage() {
   const error = update.error ?? remove.error;
 
   const del = (c: Currency) => {
-    if (!window.confirm(`Supprimer la devise ${c.code} (${c.name}) ?`)) return;
+    if (!window.confirm(`Supprimer définitivement la devise ${c.code} (${c.name}) ?\n\nLa suppression est refusée si elle sert encore (taux, opérateurs, pays, wallets, frais, transactions).`)) return;
+    setFlash(null);
     remove.mutate(c.id, { onSuccess: () => setFlash('Devise supprimée.') });
   };
 
@@ -48,7 +55,7 @@ export default function CurrenciesPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-slate-900">Devises</h1>
-        <p className="text-slate-500">Devises proposées pour les opérateurs et les taux de change. Le code ne peut pas être modifié ; une devise utilisée ne peut pas être supprimée.</p>
+        <p className="text-slate-500">Devises proposées pour les opérateurs et les taux de change. Modifiez le nom et le symbole directement dans le tableau. Le code ne peut pas être modifié (il est référencé partout), et une devise utilisée ne peut pas être supprimée.</p>
       </div>
 
       {flash && <div className="p-3 rounded-xl bg-emerald-50 text-xs font-medium text-emerald-800">{flash}</div>}
@@ -64,7 +71,7 @@ export default function CurrenciesPage() {
             {rows?.length === 0 && <tr><td className="px-4 py-4 text-slate-400" colSpan={4}>Aucune devise.</td></tr>}
             {rows?.map((r) => (
               <CurrencyRow key={`${r.id}-${r.name}-${r.symbol}`} row={r} busy={busy} onDelete={del}
-                onSave={(c) => update.mutate(c, { onSuccess: () => setFlash('Devise enregistrée.') })} />
+                onSave={(c) => { setFlash(null); update.mutate(c, { onSuccess: () => setFlash('Devise enregistrée.') }); }} />
             ))}
           </tbody>
         </table>

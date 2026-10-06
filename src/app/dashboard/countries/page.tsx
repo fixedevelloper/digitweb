@@ -4,9 +4,13 @@ import { useState, useRef } from 'react';
 import { useCountries, Country } from '@/features/countries/hooks/use-countries';
 import { useOperators } from '@/features/operators/hooks/use-operators';
 import { Button } from '@/components/ui/button';
+import { getErrorMessage } from '@/lib/utils';
 
 export default function CountriesPage() {
-    const { data: countries, isLoading, error, updateCountry, isUpdating } = useCountries();
+    const {
+        data: countries, isLoading, error, updateCountry, isUpdating, saveError, resetSaveError,
+        deleteCountry, isDeleting, deleteError, resetDeleteError,
+    } = useCountries();
     const { data: operators } = useOperators();
 
     // États pour la création et l'édition
@@ -78,6 +82,8 @@ export default function CountriesPage() {
 
     // Déclencheur Mode Édition
     const startEditing = (country: Country) => {
+        resetSaveError();
+        resetDeleteError();
         setIsCreating(false);
         setEditingCountryId(country.id);
         setFormData({
@@ -95,9 +101,17 @@ export default function CountriesPage() {
 
     // Déclencheur Mode Création
     const startCreating = () => {
+        resetSaveError();
+        resetDeleteError();
         setEditingCountryId(null);
         setFormData({ name: '', iso: '', iso3: '', phonecode: 237, currency: 'XAF', flag: null, flagPreview: null, forced_operator_id: null });
         setIsCreating(true);
+    };
+
+    const handleDeleteCountry = (country: Country) => {
+        if (!window.confirm(`Supprimer définitivement le corridor « ${country.name} » ?\n\nLa suppression est refusée si le pays sert encore (opérateurs, services, frais, bénéficiaires, transactions) : dans ce cas, suspendez-le plutôt.`)) return;
+        resetDeleteError();
+        deleteCountry(country.id, { onSuccess: () => { if (editingCountryId === country.id) setEditingCountryId(null); } });
     };
 
     // Soumission avec instanciation de FormData pour Laravel
@@ -158,6 +172,12 @@ export default function CountriesPage() {
                     ＋ Ajouter un Corridor
                 </button>
             </div>
+
+            {(saveError || deleteError) && (
+                <div className="p-3 rounded-xl bg-red-50 border border-red-100 text-xs font-medium text-red-700">
+                    {getErrorMessage(deleteError ?? saveError)}
+                </div>
+            )}
 
             {/* Formulaire de création */}
             {isCreating && (
@@ -460,7 +480,14 @@ export default function CountriesPage() {
                             </div>
 
                             {!isEditing && (
-                                <div className="flex justify-end border-t border-slate-100 pt-3">
+                                <div className="flex justify-end gap-1 border-t border-slate-100 pt-3">
+                                    <button
+                                        onClick={() => handleDeleteCountry(country)}
+                                        disabled={isDeleting}
+                                        className="text-[10px] font-bold uppercase tracking-wider text-red-600 hover:text-red-700 hover:bg-red-50 px-2.5 py-1.5 rounded-lg transition-all disabled:opacity-50"
+                                    >
+                                        🗑 Supprimer
+                                    </button>
                                     <button
                                         onClick={() => startEditing(country)}
                                         className="text-[10px] font-bold uppercase tracking-wider text-slate-600 hover:text-blue-600 hover:bg-blue-50 px-2.5 py-1.5 rounded-lg transition-all"

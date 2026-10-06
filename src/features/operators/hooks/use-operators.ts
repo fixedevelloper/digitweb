@@ -34,3 +34,16 @@ export function useOperators() {
         isUpdating: mutation.isPending
     };
 }
+
+/** Suppression d'un opérateur : refusée par l'API (409) tant qu'il a des transactions ou est forcé pour un pays. */
+export function useDeleteOperator() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (id: number) => (await apiClient.delete(`/admin/operators/${id}`)).data,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['admin-operators'] });
+            queryClient.invalidateQueries({ queryKey: ['admin-countries'] });
+        },
+    });
+}

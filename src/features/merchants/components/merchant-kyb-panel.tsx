@@ -1,0 +1,164 @@
+'use client';
+
+import { useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { apiClient } from '@/lib/api-client';
+import { getErrorMessage } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { DOC_STATUS_LABELS, KYB_STATUS_LABELS, KybOverview, saveBlob } from '@/features/kyb/types';
+
+interface AdminKyb extends KybOverview {
+  merchant: { id: number; name: string; company_name: string; email: string; phone: string; environment: string };
+  events: { id: number; action: string; document_type: string | null; comment: string | null; created_at: string; actor: { name: string | null; role: string } | null }[];
+}
+
+const ACTION_LABELS: Record<string, string> = {
+  profile_updated: 'Informations mises à jour', document_uploaded: 'Pièce déposée', document_replaced: 'Pièce remplacée', submitted: 'Dossier soumis',
+  document_viewed: 'Pièce consultée', document_approved: 'Pièce validée', document_rejected: 'Pièce refusée', dossier_approved: 'Dossier approuvé', dossier_rejected: 'Dossier refusé',
+};
+
+/** Examen du dossier de vérification d'un marchand : pièces, décisions, historique. */
+export function MerchantKybPanel({ merchantId, onClose }: { merchantId: number; onClose: () => void }) {
+  const queryClient = useQueryClient();
+  const key = ['admin-merchant-kyb', merchantId];
+  const [rejecting, setRejecting] = useState<number | 'dossier' | null>(null);
+  const [reason, setReason] = useState('');
+
+  const { data, isLoading } = useQuery<AdminKyb>({
+    queryKey: key,
+    queryFn: async () => (await apiClient.get(`/admin/merchants/${merchantId}/kyb`)).data.data,
+  });
+
+  const done = () => {
+    setRejecting(null);
+    setReason('');
+    queryClient.invalidateQueries({ queryKey: key });
+    queryClient.invalidateQueries({ queryKey: ['admin-merchants'] });
+  };
+  const base = `/admin/merchants/${merchantId}/kyb`;
+  const approveDoc = useMutation({ mutationFn: async (id: number) => apiClient.post(`${base}/documents/${id}/approve`), onSuccess: done });
+  const rejectDoc = useMutation({ mutationFn: async (id: number) => apiClient.post(`${base}/documents/${id}/reject`, { reason }), onSuccess: done });
+  const approveDossier = useMutation({ mutationFn: async () => apiClient.post(`${base}/approve`), onSuccess: done });
+  const rejectDossier = useMutation({ mutationFn: async () => apiClient.post(`${base}/reject`, { reason }), onSuccess: done });
+
+  const error = approveDoc.error ?? rejectDoc.error ?? approveDossier.error ?? rejectDossier.error;
+  const busy = approveDoc.isPending || rejectDoc.isPending || approveDossier.isPending || rejectDossier.isPending;
+
+  const download = async (id: number, name: string) => {
+    const res = await apiClient.get(`${base}/documents/${id}/file`, { responseType: 'blob' });
+    saveBlob(res.data as Blob, name);
+    queryClient.invalidateQueries({ queryKey: key }); // la consultation est journalisée
+  };
+
+  const inReview = data?.kyb_status === 'in_review';
+  const status = data ? KYB_STATUS_LABELS[data.kyb_status] : null;
+
+  return (
+    <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex justify-end" onClick={onClose}>
+      <div className="w-full max-w-2xl bg-white h-full overflow-y-auto p-6 space-y-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-black text-slate-900">{data?.merchant.company_name ?? 'Dossier marchand'}</h2>
+            {data && <p className="text-xs text-slate-500">{data.merchant.name} · {data.merchant.email} · +{data.merchant.phone}</p>}
+          </div>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-700 text-xl leading-none" aria-label="Fermer">×</button>
+        </div>
+
+        {isLoading && <p className="text-sm text-slate-400">Chargement…</p>}
+
+        {data && status && (
+          <>
+            <div className="flex items-center gap-3">
+              <span className={`text-[11px] font-bold uppercase px-2.5 py-1 rounded-full ${status.className}`}>{status.label}</span>
+              {data.grace_until && data.kyb_status !== 'approved' && <span className="text-xs text-amber-700">Délai de régularisation : {new Date(data.grace_until).toLocaleDateString()}</span>}
+            </div>
+
+            <section className="bg-slate-50 rounded-xl p-4 text-xs space-y-1">
+              <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Entreprise</h3>
+              {data.profile ? (
+                <>
+                  <div><b>Registre :</b> {data.profile.registration_number} · <b>Fiscal :</b> {data.profile.tax_id} · <b>Pays :</b> {data.profile.country}</div>
+                  <div><b>Adresse :</b> {data.profile.address}</div>
+                  <div><b>Volume mensuel attendu :</b> {Number(data.profile.expected_monthly_volume).toLocaleString()} XAF</div>
+                  <div><b>Activité :</b> {data.profile.business_description}</div>
+                </>
+              ) : <p className="text-slate-400">Informations non renseignées.</p>}
+            </section>
+
+            <section className="border border-slate-200 rounded-xl divide-y divide-slate-100">
+              {data.documents.map((item) => {
+                const doc = item.document;
+                return (
+                  <div key={item.type} className="p-3 space-y-1.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-sm font-semibold">{item.label} <span className={`text-[10px] font-bold uppercase ${item.required ? 'text-red-500' : 'text-slate-400'}`}>{item.required ? 'obligatoire' : 'facultatif'}</span></span>
+                      {doc ? <span className={`text-xs font-bold ${item.expired ? 'text-red-600' : DOC_STATUS_LABELS[doc.status].className}`}>{item.expired ? 'Expirée' : DOC_STATUS_LABELS[doc.status].label}</span> : <span className="text-xs text-slate-400">Non fournie</span>}
+                    </div>
+                    {doc && (
+                      <>
+                        <div className="text-xs text-slate-500">
+                          <button type="button" className="font-semibold text-blue-600 hover:text-blue-500" onClick={() => download(doc.id, doc.original_name)}>{doc.original_name}</button>
+                          {' '}({Math.round(doc.size / 1024)} Ko){doc.expires_at && <> · expire le {doc.expires_at}</>}
+                        </div>
+                        {doc.status === 'rejected' && <div className="text-xs text-red-600">Refusée : {doc.rejection_reason}</div>}
+                        {inReview && doc.status === 'pending' && (
+                          rejecting === doc.id ? (
+                            <div className="flex gap-2">
+                              <input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Motif du refus" className="flex-1 px-2 py-1.5 border border-slate-200 rounded-lg text-xs" />
+                              <Button variant="outline" className="text-xs px-3 py-1" disabled={busy || reason.trim().length < 3} onClick={() => rejectDoc.mutate(doc.id)}>Refuser</Button>
+                              <button type="button" className="text-xs text-slate-500" onClick={() => setRejecting(null)}>Annuler</button>
+                            </div>
+                          ) : (
+                            <div className="flex gap-2">
+                              <Button className="text-xs px-3 py-1" disabled={busy} onClick={() => approveDoc.mutate(doc.id)}>Valider</Button>
+                              <Button variant="outline" className="text-xs px-3 py-1" disabled={busy} onClick={() => { setRejecting(doc.id); setReason(''); }}>Refuser</Button>
+                            </div>
+                          )
+                        )}
+                      </>
+                    )}
+                  </div>
+                );
+              })}
+            </section>
+
+            {error && <p className="text-xs font-medium text-red-600">{getErrorMessage(error)}</p>}
+
+            {inReview && (
+              <section className="border border-slate-200 rounded-xl p-4 space-y-2">
+                <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Décision finale (superadmin, 2FA)</h3>
+                <p className="text-xs text-slate-500">L&apos;approbation exige toutes les pièces obligatoires validées et non expirées. Elle autorise ensuite le passage en production.</p>
+                {rejecting === 'dossier' ? (
+                  <div className="flex gap-2">
+                    <input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Motif du refus (visible par le marchand)" className="flex-1 px-2 py-1.5 border border-slate-200 rounded-lg text-xs" />
+                    <Button variant="outline" className="text-xs px-3 py-1" disabled={busy || reason.trim().length < 3} onClick={() => rejectDossier.mutate()}>Refuser le dossier</Button>
+                    <button type="button" className="text-xs text-slate-500" onClick={() => setRejecting(null)}>Annuler</button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <Button disabled={busy} onClick={() => window.confirm('Approuver ce dossier ? Le marchand pourra être activé en production.') && approveDossier.mutate()}>Approuver le dossier</Button>
+                    <Button variant="outline" disabled={busy} onClick={() => { setRejecting('dossier'); setReason(''); }}>Refuser le dossier</Button>
+                  </div>
+                )}
+              </section>
+            )}
+
+            <section>
+              <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">Historique</h3>
+              <ul className="space-y-1 text-xs text-slate-600">
+                {data.events.map((e) => (
+                  <li key={e.id}>
+                    <span className="text-slate-400">{new Date(e.created_at).toLocaleString()}</span> — {ACTION_LABELS[e.action] ?? e.action}
+                    {e.document_type && <> ({data.documents.find((d) => d.type === e.document_type)?.label ?? e.document_type})</>}
+                    {e.actor && <span className="text-slate-400"> · {e.actor.name ?? e.actor.role}</span>}
+                    {e.comment && <span className="text-slate-500"> : {e.comment}</span>}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}

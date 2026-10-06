@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { useOperators } from '@/features/operators/hooks/use-operators';
+import { useDeleteOperator, useOperators } from '@/features/operators/hooks/use-operators';
 import { useUpdateOperator } from '@/features/operators/hooks/use-update-operator';
 import { useCountries } from '@/features/countries/hooks/use-countries'; // Récupérer la liste pour le Select du pays
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,7 @@ export default function OperatorsPage() {
     const currencies = useCurrencyOptions();
     const { data: countries } = useCountries();
     const updateOperatorMutation = useUpdateOperator();
+    const deleteOperatorMutation = useDeleteOperator();
 
     // États pour le contrôle des formulaires
     const [isCreating, setIsCreating] = useState(false);
@@ -99,12 +100,14 @@ export default function OperatorsPage() {
 
     // Déclencheur Mode Création
     const startCreating = () => {
+        deleteOperatorMutation.reset();
         resetFormState();
         setIsCreating(true);
     };
 
     // Déclencheur Mode Édition
     const startEditing = (operator: any) => {
+        deleteOperatorMutation.reset();
         if (formData.logoPreview && formData.logoPreview.startsWith('blob:')) {
             URL.revokeObjectURL(formData.logoPreview);
         }
@@ -123,6 +126,14 @@ export default function OperatorsPage() {
             max_amount: Number(operator.max_amount),
             logo: null,
             logoPreview: operator.logo_url || null, // URL absolue renvoyée par Laravel
+        });
+    };
+
+    const handleDeleteOperator = (operator: { id: number; name: string; code: string }) => {
+        if (!window.confirm(`Supprimer définitivement l'opérateur « ${operator.name} » (${operator.code}) ?\n\nLa suppression est refusée s'il a des transactions ou s'il est forcé pour un pays : dans ce cas, coupez-le (« En ligne / Coupé »).`)) return;
+        updateOperatorMutation.reset();
+        deleteOperatorMutation.mutate(operator.id, {
+            onSuccess: () => { if (editingOperatorId === operator.id) setEditingOperatorId(null); },
         });
     };
 
@@ -220,9 +231,9 @@ export default function OperatorsPage() {
                 </button>
             </div>
 
-            {updateOperatorMutation.isError && (
+            {(updateOperatorMutation.isError || deleteOperatorMutation.isError) && (
                 <div className="bg-red-50 border border-red-200 text-red-700 text-xs font-semibold rounded-xl px-4 py-3">
-                    {apiErrorMessage(updateOperatorMutation.error)}
+                    {apiErrorMessage(deleteOperatorMutation.error ?? updateOperatorMutation.error)}
                 </div>
             )}
 
@@ -546,7 +557,14 @@ export default function OperatorsPage() {
                             </div>
 
                             {!isEditing && (
-                                <div className="flex justify-end border-t border-slate-100 pt-3">
+                                <div className="flex justify-end gap-1 border-t border-slate-100 pt-3">
+                                    <button
+                                        onClick={() => handleDeleteOperator(operator)}
+                                        disabled={deleteOperatorMutation.isPending}
+                                        className="text-[11px] font-bold uppercase tracking-wider text-red-600 hover:text-red-700 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-all disabled:opacity-50"
+                                    >
+                                        🗑 Supprimer
+                                    </button>
                                     <button
                                         onClick={() => startEditing(operator)}
                                         className="text-[11px] font-bold uppercase tracking-wider text-blue-600 hover:text-blue-500 bg-blue-50 hover:bg-blue-100/80 px-3 py-1.5 rounded-lg transition-all"

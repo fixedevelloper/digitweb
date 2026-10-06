@@ -6,7 +6,13 @@ export function useUpdateOperator() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async ({ id, data }: { id?: number; data: FormData }) => {
+        mutationFn: async ({ id, data }: { id?: number; data: FormData | Record<string, unknown> }) => {
+            // Changement simple (ex: bouton « En ligne / Coupé ») : PUT JSON. Un POST sans `_method=PUT`
+            // n'est pas une route de mise à jour et renvoyait 405 (le kill-switch ne fonctionnait pas).
+            if (id && !(data instanceof FormData)) {
+                return (await apiClient.put(`/admin/operators/${id}`, data)).data;
+            }
+
             // Content-Type multipart obligatoire, en création comme en mise à jour : apiClient
             // est en 'application/json' par défaut, et axios convertit alors le FormData en
             // JSON — le fichier logo y devient {} et Laravel le rejette (règle 'mimes').
