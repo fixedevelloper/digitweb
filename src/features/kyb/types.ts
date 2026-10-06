@@ -36,6 +36,10 @@ export interface KybOverview {
   profile: KybProfile | null;
   profile_complete: boolean;
   can_submit: boolean;
+  /** Le marchand a cliqué sur « Soumettre » (dossier en examen ou déjà décidé). */
+  submitted: boolean;
+  /** Ce qui empêche encore l'approbation, en clair. */
+  blockers: string[];
   documents: KybChecklistItem[];
 }
 

@@ -50,7 +50,8 @@ export function MerchantKybPanel({ merchantId, onClose }: { merchantId: number; 
     queryClient.invalidateQueries({ queryKey: key }); // la consultation est journalisée
   };
 
-  const inReview = data?.kyb_status === 'in_review';
+  // L'équipe peut examiner les pièces et décider tant que le dossier n'est pas approuvé (sans attendre la soumission).
+  const reviewable = !!data && data.kyb_status !== 'approved';
   const status = data ? KYB_STATUS_LABELS[data.kyb_status] : null;
 
   return (
@@ -72,6 +73,12 @@ export function MerchantKybPanel({ merchantId, onClose }: { merchantId: number; 
               <span className={`text-[11px] font-bold uppercase px-2.5 py-1 rounded-full ${status.className}`}>{status.label}</span>
               {data.grace_until && data.kyb_status !== 'approved' && <span className="text-xs text-amber-700">Délai de régularisation : {new Date(data.grace_until).toLocaleDateString()}</span>}
             </div>
+
+            {reviewable && !data.submitted && (
+              <p className="text-xs bg-slate-50 border border-slate-200 text-slate-700 rounded-xl p-3">
+                Le marchand n&apos;a pas encore soumis son dossier. Vous pouvez néanmoins valider ou refuser les pièces déjà déposées, puis approuver le dossier une fois tout validé.
+              </p>
+            )}
 
             <section className="bg-slate-50 rounded-xl p-4 text-xs space-y-1">
               <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Entreprise</h3>
@@ -101,7 +108,7 @@ export function MerchantKybPanel({ merchantId, onClose }: { merchantId: number; 
                           {' '}({Math.round(doc.size / 1024)} Ko){doc.expires_at && <> · expire le {doc.expires_at}</>}
                         </div>
                         {doc.status === 'rejected' && <div className="text-xs text-red-600">Refusée : {doc.rejection_reason}</div>}
-                        {inReview && doc.status === 'pending' && (
+                        {reviewable && doc.status === 'pending' && (
                           rejecting === doc.id ? (
                             <div className="flex gap-2">
                               <input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Motif du refus" className="flex-1 px-2 py-1.5 border border-slate-200 rounded-lg text-xs" />
@@ -124,10 +131,17 @@ export function MerchantKybPanel({ merchantId, onClose }: { merchantId: number; 
 
             {error && <p className="text-xs font-medium text-red-600">{getErrorMessage(error)}</p>}
 
-            {inReview && (
+            {reviewable && (
               <section className="border border-slate-200 rounded-xl p-4 space-y-2">
                 <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Décision finale (superadmin, 2FA)</h3>
-                <p className="text-xs text-slate-500">L&apos;approbation exige toutes les pièces obligatoires validées et non expirées. Elle autorise ensuite le passage en production.</p>
+                {data.blockers.length > 0 ? (
+                  <div className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-3 space-y-1">
+                    <div className="font-semibold">Avant de pouvoir approuver :</div>
+                    <ul className="list-disc pl-4">{data.blockers.map((b) => <li key={b}>{b}</li>)}</ul>
+                  </div>
+                ) : (
+                  <p className="text-xs text-emerald-700">Tout est en règle : le dossier peut être approuvé. Cela autorise ensuite le passage en production.</p>
+                )}
                 {rejecting === 'dossier' ? (
                   <div className="flex gap-2">
                     <input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Motif du refus (visible par le marchand)" className="flex-1 px-2 py-1.5 border border-slate-200 rounded-lg text-xs" />
@@ -136,7 +150,7 @@ export function MerchantKybPanel({ merchantId, onClose }: { merchantId: number; 
                   </div>
                 ) : (
                   <div className="flex gap-2">
-                    <Button disabled={busy} onClick={() => window.confirm('Approuver ce dossier ? Le marchand pourra être activé en production.') && approveDossier.mutate()}>Approuver le dossier</Button>
+                    <Button disabled={busy || data.blockers.length > 0} onClick={() => window.confirm('Approuver ce dossier ? Le marchand pourra être activé en production.') && approveDossier.mutate()}>Approuver le dossier</Button>
                     <Button variant="outline" disabled={busy} onClick={() => { setRejecting('dossier'); setReason(''); }}>Refuser le dossier</Button>
                   </div>
                 )}
