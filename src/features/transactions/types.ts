@@ -31,6 +31,8 @@ export interface Transaction {
   gateway_reference: string | null;
   type: 'transfer' | 'deposit' | 'withdrawal' | 'payment';
   user_id: number;
+  channel?: string | null;
+  user?: { id: number; name: string; phone: string | null; role: string } | null;
   recipient_id: number | null;
   recipient_name: string | null;
   recipient_phone: string;

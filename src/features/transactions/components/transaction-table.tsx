@@ -118,6 +118,7 @@ export function TransactionTable() {
             <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
               <th className="px-6 py-3.5">Référence Internes / API</th>
               <th className="px-6 py-3.5">Type & Réseau</th>
+              <th className="px-6 py-3.5">Expéditeur</th>
               <th className="px-6 py-3.5">Bénéficiaire</th>
               <th className="px-6 py-3.5">Montant Envoyé</th>
               <th className="px-6 py-3.5">Marge Net Admin</th>
@@ -149,6 +150,24 @@ export function TransactionTable() {
                       {tx.type}
                     </span>
                       <div className="text-slate-500 font-semibold">{tx.recipient_operator}</div>
+                    </td>
+
+                    {/* Expéditeur : le marchand s'il s'agit d'une transaction marchand */}
+                    <td className="px-6 py-4">
+                      {tx.user ? (
+                        <>
+                          <div className="text-slate-900 font-bold">{tx.user.name}</div>
+                          {tx.user.role === 'merchant' || tx.channel === 'merchant_api' ? (
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold uppercase mt-0.5 bg-indigo-50 text-indigo-700">
+                              Marchand
+                            </span>
+                          ) : (
+                            <div className="text-slate-400 font-mono mt-0.5">{tx.user.phone}</div>
+                          )}
+                        </>
+                      ) : (
+                        <span className="text-slate-400">—</span>
+                      )}
                     </td>
 
                     {/* Destinataire */}
@@ -203,7 +222,7 @@ export function TransactionTable() {
 
             {transactions?.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-sm text-slate-400">
+                  <td colSpan={8} className="px-6 py-12 text-center text-sm text-slate-400">
                     {dateFrom || dateTo
                         ? 'Aucun flux financier ne correspond à cette plage de dates.'
                         : "Aucun flux financier n'a encore transité par la passerelle aujourd'hui."}
